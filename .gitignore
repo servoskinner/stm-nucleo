@@ -1,0 +1,8 @@
+*/build/*
+*.o
+*.d
+*.gdb_history
+*.bin
+*.elf
+*.pdf
+.tags
