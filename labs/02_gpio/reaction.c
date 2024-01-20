@@ -1,46 +1,65 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-//---------------
-// RCC Registers
-//---------------
+// Functional Macros
 
-#define REG_RCC_CR     (volatile uint32_t*)(uintptr_t)0x40021000U // Clock Control Register
-#define REG_RCC_CFGR   (volatile uint32_t*)(uintptr_t)0x40021004U // PLL Configuration Register
-#define REG_RCC_AHBENR (volatile uint32_t*)(uintptr_t)0x40021014U // AHB1 Peripheral Clock Enable Register
-#define REG_RCC_CFGR2  (volatile uint32_t*)(uintptr_t)0x4002102CU // Clock configuration register 2
+#define ONE(x)       (uint32_t)(0b1U << (x))
+#define ZERO(x)      (uint32_t)(~ONE((x)))
 
-//----------------
-// GPIO Registers
-//----------------
+// RCC Registers ________________________________________
 
-#define GPIOA_MODER (volatile uint32_t*)(uintptr_t)0x48000000U // GPIO port mode register
-#define GPIOA_TYPER (volatile uint32_t*)(uintptr_t)0x48000004U // GPIO port output type register
-#define GPIOA_PUPDR (volatile uint32_t*)(uintptr_t)0x4800000CU // GPIO port pull-up/pull-down register
-#define GPIOA_IDR   (volatile uint32_t*)(uintptr_t)0x48000010U // GPIO port input  data register
-#define GPIOA_ODR   (volatile uint32_t*)(uintptr_t)0x48000014U // GPIO port output data register
+#define RCC_CTRL     (volatile uint32_t*)(uintptr_t)0x40023800U // Clock Control Register (RCC_CR)
+#define RCC_PLLCFG   (volatile uint32_t*)(uintptr_t)0x40023804U // PLL Configuration (RCC_PLLCFGR)
+#define RCC_CFG      (volatile uint32_t*)(uintptr_t)0x40023808U // Clock configuration (RCC_CFGR)
 
-#define GPIOC_MODER (volatile uint32_t*)(uintptr_t)0x48000800U // GPIO port mode register
-#define GPIOC_TYPER (volatile uint32_t*)(uintptr_t)0x48000804U // GPIO port output type register
+#define RCC_CLIR     (volatile uint32_t*)(uintptr_t)0x4002380CU // Clock interrupts (RCC_CLIR)
+
+#define RCC_AHB1RST  (volatile uint32_t*)(uintptr_t)0x40023810U // AHB1 Peripheral Clock Reset
+#define RCC_AHB2RST  (volatile uint32_t*)(uintptr_t)0x40023814U // AHB2 Peripheral Clock Reset
+#define RCC_APB1RST  (volatile uint32_t*)(uintptr_t)0x40023820U // APB1 Peripheral Clock Reset
+#define RCC_APB2RST  (volatile uint32_t*)(uintptr_t)0x40023824U // APB2 Peripheral Clock Reset
+
+#define RCC_AHB1ENA  (volatile uint32_t*)(uintptr_t)0x40023830U // AHB1 Peripheral clock enable
+#define RCC_AHB2ENA  (volatile uint32_t*)(uintptr_t)0x40023834U // AHB2 Peripheral clock enable
+#define RCC_APB1ENA  (volatile uint32_t*)(uintptr_t)0x40023840U // APB1 Peripheral clock enable
+#define RCC_APB2ENA  (volatile uint32_t*)(uintptr_t)0x40023844U // APB2 Peripheral clock enable
+
+#define RCC_CLCCS    (volatile uint32_t*)(uintptr_t)0x40023844U // Clock control and status
+
+// GPIO Registers________________________________________
+
+#define GPIOA(reg)   (volatile uint32_t*)(uintptr_t)((uint32_t)0x40020000U + (reg))
+#define GPIOB(reg)   (volatile uint32_t*)(uintptr_t)((uint32_t)0x40020400U + (reg))
+#define GPIOC(reg)   (volatile uint32_t*)(uintptr_t)((uint32_t)0x40020800U + (reg))
+#define GPIOD(reg)   (volatile uint32_t*)(uintptr_t)((uint32_t)0x40020C00U + (reg))
+#define GPIOE(reg)   (volatile uint32_t*)(uintptr_t)((uint32_t)0x40021000U + (reg))
+
+#define IO_MODE      (uint32_t)0x00U
+#define IO_TYPE      (uint32_t)0x04U
+#define IO_SPEED     (uint32_t)0x08U
+#define IO_PULL      (uint32_t)0x0CU
+#define INPUT        (uint32_t)0x10U
+#define OUTPUT       (uint32_t)0x14U
+#define RESET        (uint32_t)0x18U
 
 //-------------------
 // 7-segment display
 //-------------------
 
 // TRUE and HONEST Pin Mapping:
-#define A  0x0800U
-#define B  0x0080U
-#define C  0x0010U
-#define D  0x0004U
-#define E  0x0002U
-#define F  0x0400U
-#define G  0x0020U
-#define DP 0x0008U
+#define A  0x0001U // GPIOx 0
+#define B  0x0002U
+#define C  0x0004U
+#define D  0x0008U
+#define E  0x0010U
+#define F  0x0020U
+#define G  0x0040U
+#define DP 0x0080U // GPIOx 7
 
-#define POS0 0x0040U
-#define POS1 0x0100U
-#define POS2 0x0200U
-#define POS3 0x1000U
+#define POS0 0x0100U // GPIOx 8
+#define POS1 0x0200U
+#define POS2 0x0400U
+#define POS3 0x0800U // GPIOx 11
 
 static const uint32_t PINS_USED = A|B|C|D|E|F|G|DP|POS0|POS1|POS2|POS3;
 
@@ -49,11 +68,11 @@ static const uint32_t DIGITS[10] =
 {
     A|B|C|D|E|F,   // 0
     B|C,           // 1
-    A|C|D|F|G,     // 2
-    A|B|C|D|G,     // 3
-    B|C|F|G,       // 4
-    A|B|D|E|G,     // 5
-    A|C|D|E|F|G,   // 6
+    A|B|G|E|D,     // 2
+    A|B|G|C|D,     // 3
+    F|G|B|C,       // 4
+    A|F|G|C|D,     // 5
+    A|F|G|C|D|E,   // 6
     A|B|C,         // 7
     A|B|C|D|E|F|G, // 8
     A|B|C|D|F|G    // 9
@@ -97,39 +116,36 @@ void SEG7_push_display_state_to_mc(struct Seg7Display* seg7)
 // RCC configuration
 //-------------------
 
-#define CPU_FREQENCY 48000000U // CPU frequency: 48 MHz
-#define ONE_MILLISECOND CPU_FREQENCY/1000U
+#define CPU_FREQUENCY 1920000U // TRUE and HONEST CPU frequency: 1.92 MHz
+#define ONE_MILLISECOND (CPU_FREQUENCY/1000U)
 
 void board_clocking_init()
 {
     // (1) Clock HSE and wait for oscillations to setup.
-    *REG_RCC_CR = 0x00010000U;
-    while ((*REG_RCC_CR & 0x00020000U) != 0x00020000U);
+    *RCC_CTRL |= ONE(16);
+    while ((*RCC_CTRL & ONE(17)) != ONE(17));
 
     // (2) Configure PLL:
-    // PREDIV output: HSE/2 = 4 MHz
-    *REG_RCC_CFGR2 |= 1U;
+    // PREDIV output: HSE*192/32 = 48 MHz
+    *RCC_PLLCFG |= ONE(5);
+    *RCC_PLLCFG &= ZERO(4);
 
     // (3) Select PREDIV output as PLL input (4 MHz):
-    *REG_RCC_CFGR |= 0x00010000U;
+    *RCC_PLLCFG |= ONE(22);
 
-    // (4) Set PLLMUL to 12:
+    // (4) Set PLLMUL to 12 (omitted)
     // SYSCLK frequency = 48 MHz
-    *REG_RCC_CFGR |= (12U-2U) << 18U;
 
     // (5) Enable PLL:
-    *REG_RCC_CR |= 0x01000000U;
-    while ((*REG_RCC_CR & 0x02000000U) != 0x02000000U);
-
+    *RCC_CTRL |= ONE(24);
+    while ((*RCC_CTRL & ONE(25)) != ONE(25));
     // (6) Configure AHB frequency to 48 MHz:
-    *REG_RCC_CFGR |= 0b000U << 4U;
-
+    *RCC_CFG |= 0b0000U << 4;
     // (7) Select PLL as SYSCLK source:
-    *REG_RCC_CFGR |= 0b10U;
-    while ((*REG_RCC_CFGR & 0xCU) != 0x8U);
-
+    *RCC_CFG |= 0b10U;
+    while ((*RCC_CFG & 0b1100U) != 0b1000U);
     // (8) Set APB frequency to 48 MHz
-    *REG_RCC_CFGR |= 0b000U << 8U;
+    *RCC_CFG |= 0b000U << 10U;
 }
 
 void to_get_more_accuracy_pay_2202_2013_2410_3805_1ms()

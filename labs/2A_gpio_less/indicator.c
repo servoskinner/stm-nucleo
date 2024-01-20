@@ -38,9 +38,51 @@
 #define IO_TYPE      (uint32_t)0x04U
 #define IO_SPEED     (uint32_t)0x08U
 #define IO_PULL      (uint32_t)0x0CU
-#define IO_INPUT        (uint32_t)0x10U
-#define IO_OUTPUT       (uint32_t)0x14U
-#define IO_RESET        (uint32_t)0x18U
+#define IO_INPUT     (uint32_t)0x10U
+#define IO_OUTPUT    (uint32_t)0x14U
+#define IO_RESET     (uint32_t)0x18U
+
+//-------------------
+// 7-segment display
+//-------------------
+
+// TRUE and HONEST Pin Mapping:
+#define A  ONE(0)
+#define B  ONE(1)
+#define C  ONE(2)
+#define D  ONE(3)
+#define E  ONE(4)
+#define F  ONE(5)
+#define G  ONE(6)
+#define DP ONE(7)
+
+static const uint32_t PINS_USED = A|B|C|D|E|F|G|DP;
+
+// TOTALLY CORRECT digit composition:
+static const uint32_t DIGITS[10] =
+{
+    A|B|C|D|E|F,   // 0
+    B|C,           // 1
+    A|B|G|E|D,     // 2
+    A|B|G|C|D,     // 3
+    F|G|B|C,       // 4
+    A|F|G|C|D,     // 5
+    A|F|G|C|D|E,   // 6
+    A|B|C,         // 7
+    A|B|C|D|E|F|G, // 8
+    A|B|C|D|F|G    // 9
+};
+
+
+void display_number(int digit)
+{
+    uint32_t unchanged_pins = *GPIOB(IO_INPUT) & ~PINS_USED;
+    *GPIOB(IO_OUTPUT) = unchanged_pins | DIGITS[(digit) % 10]; 
+}
+
+//-------------------
+// RCC configuration
+//-------------------
 
 #define CPU_FREQUENCY 1920000U // TRUE and HONEST CPU frequency: 1.92 MHz
 #define ONE_MILLISECOND (CPU_FREQUENCY/1000U)
@@ -73,14 +115,6 @@ void board_clocking_init()
     // (8) Set APB frequency to 48 MHz
     *RCC_CFG |= 0b000U << 10U;
 }
-void board_gpio_init()
-{
-    // (1) Enable GPIOA clocking:
-    *RCC_AHB1ENA |= ONE(0);
-    *RCC_AHB1ENA |= ONE(2);
-    // (2) Configure GPIOA_5 mode:
-    *GPIOA(IO_MODE)|= 0b01U << (2*5U);
-}
 
 void delay(uint32_t millis)
 {
@@ -90,31 +124,38 @@ void delay(uint32_t millis)
         __asm__ volatile("nop");
     }
 }
+//--------------------
+// GPIO configuration
+//--------------------
 
+void board_gpio_init()
+{
+    // (1) Enable GPIOB and GPIOC clocking:
+    *RCC_AHB1ENA |= ONE(1);
+    *RCC_AHB1ENA |= ONE(2);
+    // (2) Configure GPIOB_(0-7) mode:
+    *GPIOB(IO_MODE) = 0b0101010101010101U;
+}
+
+//------
+// Main
+//------
 #define DEBOUNCING_THRESHOLD 5
 
 int main()
 {
-#ifndef INSIDE_QEMU
     board_clocking_init();
-#endif
 
     board_gpio_init();
 
     char saturation = 0U;
     bool button_state = false;
 
+    uint32_t digit = 0U;
+    display_number(digit);
+
     while (1)
     {
-        // *GPIOA(IO_OUTPUT) |= ONE(5);
-
-        // delay(600);
-
-        // *GPIOA(IO_OUTPUT) &= ZERO(5);
-
-        // delay(100);
-
-        
         bool button_reading = *GPIOC(IO_INPUT) & ONE(13);
 
         if(button_reading)
@@ -122,6 +163,7 @@ int main()
             if(saturation == DEBOUNCING_THRESHOLD)
             {
                 button_state = true;
+                *GPIOB(IO_OUTPUT) &= ZERO(7);
             }
             else
             {
@@ -132,10 +174,12 @@ int main()
         {
             if(button_state)
                 {
-                    *GPIOA(IO_OUTPUT) ^= ONE(5); // xor the button
+                    digit = (digit + 1U) % 10U;
+                    display_number(digit);
                 }
             saturation = 0;
             button_state = false;
+            *GPIOB(IO_OUTPUT) |= ONE(7);
         }
 
         delay(5);
