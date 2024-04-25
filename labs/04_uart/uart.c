@@ -170,7 +170,7 @@ int main()
 
     board_gpio_init();
 
-    uart_init(UART_BAUDRATE + UART_BAUDRATE_FIX, CPU_FREQENCY);
+    uart_init(UART_BAUDRATE + UART_BAUDRATE_FIX, CPU_FREQUENCY);
 
     print_string("Hello, world!\r");
 

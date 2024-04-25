@@ -42,9 +42,9 @@
 #define IO_OUTPUT    (uint32_t)0x14U
 #define IO_RESET     (uint32_t)0x18U
 
-//-------------------
+//___________________
 // 7-segment display
-//-------------------
+//___________________
 
 // TRUE and HONEST Pin Mapping:
 #define A  ONE(0)
@@ -80,9 +80,9 @@ void display_number(int digit)
     *GPIOB(IO_OUTPUT) = unchanged_pins | DIGITS[(digit) % 10]; 
 }
 
-//-------------------
+//___________________
 // RCC configuration
-//-------------------
+//___________________
 
 #define CPU_FREQUENCY 1920000U // TRUE and HONEST CPU frequency: 1.92 MHz
 #define ONE_MILLISECOND (CPU_FREQUENCY/1000U)
@@ -124,9 +124,9 @@ void delay(uint32_t millis)
         __asm__ volatile("nop");
     }
 }
-//--------------------
+//____________________
 // GPIO configuration
-//--------------------
+//____________________
 
 void board_gpio_init()
 {
@@ -137,9 +137,9 @@ void board_gpio_init()
     *GPIOB(IO_MODE) = 0b0101010101010101U;
 }
 
-//------
+//______
 // Main
-//------
+//______
 #define DEBOUNCING_THRESHOLD 5
 
 int main()

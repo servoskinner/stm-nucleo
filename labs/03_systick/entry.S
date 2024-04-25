@@ -9,21 +9,20 @@ __reset_handler:
 	ldr r0, __data_start_lma_val
 	ldr r1, __data_start_vma_val
 	ldr r2, __data_end_vma_val
-
-__loop_copy_data_section:
-	cmp r1, r2
+	
+	__loop_copy_data_section:
+		cmp r1, r2
 	beq __loop_copy_data_section_end
 
-	ldr r4, [r0, #0]
-	str r4, [r1, #0]
+		ldr r4, [r0, #0]
+		str r4, [r1, #0]
 
-	adds r0, r0, #4
-	adds r1, r1, #4
+		adds r0, r0, #4
+		adds r1, r1, #4
 	b __loop_copy_data_section
-__loop_copy_data_section_end:
 
-	// Execute actual software:
-    blx main
+__loop_copy_data_section_end:
+    blx main // Execute actual software:
 
 __halt:
 	b __halt
@@ -43,7 +42,15 @@ __data_end_vma_val:
 .word __exc_handler         // NMI Handler
 .word __exc_handler         // Hard Fault Handler
 .fill 7, 4, 0x00            // Reserved
+
+
+
+
+
+
+
 .word __exc_handler         // SVCall
 .fill 2, 4, 0x00            // Reserved
+
 .word __exc_handler         // PendSV
 .word systick_handler       // SysTick
