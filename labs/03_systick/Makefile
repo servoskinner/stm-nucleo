@@ -9,20 +9,27 @@ CFLAGS = \
 	-Wall \
 	-Wextra \
 	-Werror \
-	-march=armv6-m \
-	-mcpu=cortex-m0
+	-mcpu=cortex-m4
 
 LDFLAGS = \
 	-Wall \
 	-Wextra \
 	-Werror \
 	-Wl,--start-group -lgcc -lc -lg -Wl,--end-group -Wl,--gc-sections \
-	-march=armv6-m \
-	-mcpu=cortex-m0 \
+	-mcpu=cortex-m4 \
 	-Wl,--warn-common \
 	-Wl,--fatal-warnings \
 	-Wl,-z,max-page-size=8 \
 	-Wl,-T,entry.lds
+
+QEMU_FLAGS = \
+	-machine NUCLEO-F411RE \
+	-cpu cortex-m4 \
+	-kernel $(EXECUTABLE_FLASH) \
+	-serial stdio \
+	-m 32M \
+	-icount 25 \
+	-gdb tcp::1234 \
 
 ifeq ($(DEBUG),1)
 	CFLAGS += -g
@@ -63,6 +70,9 @@ build/%.o: %.c
 build/%.o: %.S
 	@mkdir -p build
 	$(CC) $(CFLAGS) -o $@ -c $<
+
+qemu :  $(EXECUTABLE_FLASH)
+	qemu-system-gnuarmeclipse $(QEMU_FLAGS)
 
 clean:
 	rm -rf build

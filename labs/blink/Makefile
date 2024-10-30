@@ -5,27 +5,19 @@
 CC = arm-none-eabi-gcc
 
 CFLAGS = \
-	-std=c18 \
-	-Wall \
-	-Wextra \
-	-Werror \
-	-march=armv6-m \
-	-mcpu=cortex-m0
+	-mcpu=cortex-m4
 
 LDFLAGS = \
-	-Wall \
-	-Wextra \
-	-Werror \
-	-Wl,--start-group -lgcc -lc -lg -Wl,--end-group -Wl,--gc-sections \
-	-march=armv6-m \
-	-mcpu=cortex-m0 \
-	-Wl,--warn-common \
-	-Wl,--fatal-warnings \
-	-Wl,-z,max-page-size=8 \
+	-nostdlib \
+	-mcpu=cortex-m4 \
 	-Wl,-T,entry.lds
 
 ifeq ($(DEBUG),1)
 	CFLAGS += -g
+endif
+
+ifeq ($(QEMU),1)
+	CFLAGS += -g -DINSIDE_QEMU
 endif
 
 #-------
@@ -34,13 +26,13 @@ endif
 
 SOURCES = \
 	entry.S \
-	reaction.c
+	blinkled.c
 
 OBJECTS_HALFWAY_DONE = $(SOURCES:%.c=build/%.o)
 OBJECTS              = $(OBJECTS_HALFWAY_DONE:%.S=build/%.o)
 
-EXECUTABLE_FLASH = build/reaction.elf
-BINARY_FLASH     = build/reaction.bin
+EXECUTABLE_FLASH = build/blinkled.elf
+BINARY_FLASH     = build/blinkled.bin
 
 #---------------
 # Build scripts
@@ -69,8 +61,14 @@ clean:
 # Hardware interaction
 #----------------------
 
-flash: $(BINARY_FLASH)
-	st-flash write $(BINARY_FLASH) 0x08000000
+QEMU_FLAGS = \
+	-machine NUCLEO-F411RE \
+	-cpu cortex-m4 \
+	-kernel $(EXECUTABLE_FLASH) \
+	-serial stdio \
+	-m 32M \
+	-icount 25 \
+	-gdb tcp::1234 \
 
 GDB_FLAGS = \
 	--eval-command="set architecture arm" \
@@ -78,10 +76,16 @@ GDB_FLAGS = \
 	--eval-command="target remote localhost:1234" \
 	--eval-command="file $(EXECUTABLE_FLASH)"
 
+flash: $(BINARY_FLASH)
+	st-flash write $(BINARY_FLASH) 0x08000000
+
+qemu :  $(EXECUTABLE_FLASH)
+	qemu-system-gnuarmeclipse $(QEMU_FLAGS)
+
 hardware: $(EXECUTABLE_FLASH)
 	st-util -p 1234
 
 gdb: $(BINARY_FLASH)
 	arm-none-eabi-gdb $(GDB_FLAGS)
 
-.PHONY: all clean flash hardware gdb
+.PHONY: all clean flash qemu hardware gdb

@@ -1,7 +1,7 @@
-ENTRY(__reset_handler);
+ENTRY(reset);
 
-FLASH_VADDR = 0x08000000;
-FLASH_PADDR = 0x00000000;
+FLASH_VADDR = 0x00000000;
+FLASH_PADDR = 0x08000000;
 FLASH_SIZE  = 512K;
 
 SRAM_VADDR  = 0x20000000;
@@ -21,35 +21,21 @@ SECTIONS
     .text :
     {
         KEEP(*(.vector_table));
-        *(.text)
-        *(.rodata)
+        *(.text*)
     } > FLASH
 
     .data :
     {
         . = ALIGN(4);
-        __data_start_vma = .;
+        data_vma_start = .;
 
-        *(.data)
+        *(.data*)
 
         . = ALIGN(4);
-        __data_end_vma = .;
+        data_vma_end = .;
     } >SRAM AT >FLASH
 
-    .bss : 
-    {
-    	. = ALIGN(4);
-    	__bss_start_vma = .;
-
-    	*(.bss)
-
-    	. = ALIGN(4);
-		__bss_end_vma = .; 
-    } >SRAM AT >FLASH
-
-    __data_start_lma = LOADADDR(.data);
-    __bss_start_lma = LOADADDR(.bss);
-
+    data_lma_start = LOADADDR(.data);
     __stack_start = SRAM_VADDR + SRAM_SIZE;
 
     /DISCARD/ :

@@ -9,16 +9,14 @@ CFLAGS = \
 	-Wall \
 	-Wextra \
 	-Werror \
-	-march=armv6-m \
-	-mcpu=cortex-m0
+	-mcpu=cortex-m4
 
 LDFLAGS = \
 	-Wall \
 	-Wextra \
 	-Werror \
 	-Wl,--start-group -lgcc -lc -lg -Wl,--end-group -Wl,--gc-sections \
-	-march=armv6-m \
-	-mcpu=cortex-m0 \
+	-mcpu=cortex-m4 \
 	-Wl,--warn-common \
 	-Wl,--fatal-warnings \
 	-Wl,-z,max-page-size=8 \
@@ -33,14 +31,25 @@ endif
 #-------
 
 SOURCES = \
-	entry.S \
-	indicator.c
+	blink.S \
+	setup.S \
 
 OBJECTS_HALFWAY_DONE = $(SOURCES:%.c=build/%.o)
 OBJECTS              = $(OBJECTS_HALFWAY_DONE:%.S=build/%.o)
 
-EXECUTABLE_FLASH = build/indicator.elf
-BINARY_FLASH     = build/indicator.bin
+ENTRY_FLASH = build/entry.o
+
+EXECUTABLE_FLASH = build/systick.elf
+BINARY_FLASH     = build/systick.bin
+
+QEMU_FLAGS = \
+	-machine NUCLEO-F411RE \
+	-cpu cortex-m4 \
+	-kernel $(EXECUTABLE_FLASH) \
+	-serial stdio \
+	-m 32M \
+	-icount 25 \
+	-gdb tcp::1234 \
 
 #---------------
 # Build scripts
@@ -61,6 +70,9 @@ build/%.o: %.c
 build/%.o: %.S
 	@mkdir -p build
 	$(CC) $(CFLAGS) -o $@ -c $<
+
+qemu :  $(EXECUTABLE_FLASH)
+	qemu-system-gnuarmeclipse $(QEMU_FLAGS)
 
 clean:
 	rm -rf build

@@ -1,0 +1,51 @@
+Vector
+Number  Vector Name                        Description
+---------+----------------------------------+----------------------------
+   -1    Stack pointer                     Initial SP
+   0     Reset_Handler                     Reset Handler
+   1     NMI_Handler                       Non Maskable Interrupt
+   2     HardFault_Handler                 Hard Fault Interrupt
+   3     MemManage_Handler                 Memory Management Interrupt
+   4     BusFault_Handler                  Bus Fault Interrupt
+   5     UsageFault_Handler                Usage Fault Interrupt
+   6     Reserved                          Reserved
+   7     Reserved                          Reserved
+   8     Reserved                          Reserved
+   9     Reserved                          Reserved
+  10     SVC_Handler                       SVCall Interrupt
+  11     DebugMon_Handler                  Debug Monitor Interrupt
+  12     Reserved                          Reserved
+  13     PendSV_Handler                    PendSV Interrupt
+  14     SysTick_Handler                   SysTick Interrupt
+  15     WWDG_IRQHandler                   Window Watchdog Interrupt
+  16     PVD_IRQHandler                    PVD through EXTI Line detection Interrupt
+  17     TAMP_STAMP_IRQHandler             Tamper and TimeStamp Interrupts through the EXTI line
+  18     RTC_WKUP_IRQHandler               RTC Wakeup Interrupt through the EXTI line
+  19     FLASH_IRQHandler                  FLASH global Interrupt
+  20     RCC_IRQHandler                    RCC global Interrupt
+  21     EXTI0_IRQHandler                  EXTI Line0 Interrupt
+  22     EXTI1_IRQHandler                  EXTI Line1 Interrupt
+  23     EXTI2_IRQHandler                  EXTI Line2 Interrupt
+  24     EXTI3_IRQHandler                  EXTI Line3 Interrupt
+  25     EXTI4_IRQHandler                  EXTI Line4 Interrupt
+  26     DMA1_Stream0_IRQHandler           DMA1 Stream 0 global Interrupt
+  27     DMA1_Stream1_IRQHandler           DMA1 Stream 1 global Interrupt
+  28     DMA1_Stream2_IRQHandler           DMA1 Stream 2 global Interrupt
+  29     DMA1_Stream3_IRQHandler           DMA1 Stream 3 global Interrupt
+  30     DMA1_Stream4_IRQHandler           DMA1 Stream 4 global Interrupt
+  31     DMA1_Stream5_IRQHandler           DMA1 Stream 5 global Interrupt
+  32     DMA1_Stream6_IRQHandler           DMA1 Stream 6 global Interrupt
+  33     ADC_IRQHandler                    ADC1 global Interrupt
+  34     EXTI9_5_IRQHandler                EXTI Line[9:5] Interrupts
+  35     TIM1_BRK_TIM9_IRQHandler          TIM1 Break Interrupt and TIM9 global Interrupt
+  36     TIM1_UP_TIM10_IRQHandler          TIM1 Update Interrupt and TIM10 global Interrupt
+  37     TIM1_TRG_COM_TIM11_IRQHandler     TIM1 Trigger and Commutation Interrupts and TIM11 global Interrupt
+  38     TIM1_CC_IRQHandler                TIM1 Capture Compare Interrupt
+  39     TIM2_IRQHandler                   TIM2 global Interrupt
+  40     TIM3_IRQHandler                   TIM3 global Interrupt
+  41     TIM4_IRQHandler                   TIM4 global Interrupt
+  42     I2C1_EV_IRQHandler                I2C1 Event Interrupt
+  43     I2C1_ER_IRQHandler                I2C1 Error Interrupt
+  44     I2C2_EV_IRQHandler                I2C2 Event Interrupt
+  45     I2C2_ER_IRQHandler                I2C2 Error Interrupt
+  46     SPI1_IRQHandler                   SPI1
