@@ -8,6 +8,7 @@
 .extern systick_counter_capacity
 .extern systick_counter
 
+.extern dispchar
 
 
 .section .vector_table
@@ -41,16 +42,16 @@ reset:
     ldr     r1, =data_vma_start
     ldr     r2, =data_vma_end
 
-    loop_copy_data:
+    _loop_copy_data:
         cmp     r1, r2
-        beq     end_copy_data
+        beq     _end_copy_data
         ldr     r4, [r0]
         str     r4, [r1]
 
         adds    r0, r0, #4
         adds    r1, r1, #4
-        b       loop_copy_data
-    end_copy_data:
+        b       _loop_copy_data
+    _end_copy_data:
 
     bl main
 
@@ -58,21 +59,39 @@ reset:
 
 .thumb_func
 setup_gpio:
-    push    {r0, r1, r2, lr} 
+    push    {r0, r1, r2, r3, lr} 
 
     ldr     r0, =RCC_AHB1ENA
     ldr     r1, [r0]
     orr     r1, r1, #0b00101
     str     r1, [r0]
 
-    @ Configure A5 as output
-    ldr     r0, =GPIOA
+    @ Configure A0-A8 as output 
+    ldr     r0, =GPIOB
     ldr     r1, [r0, #IO_MODE]
-    bic     r1, r1, 0b11 << (5*2)
-    orr     r1, r1, 0b01 << (5*2)
+    mov     r2, #0b11
+    mov     r3, #0b01
+
+    _setup_gpio_loop1:
+        cmp     r2, 0b11 << (8*2)
+        beq _setup_gpio_loop1_end
+
+        bic     r1, r1, r2
+        orr     r1, r1, r3
+        lsl     r2, r2, #2
+        lsl     r3, r3, #2
+        b   _setup_gpio_loop1
+
+    _setup_gpio_loop1_end:
     str     r1, [r0, #IO_MODE]
 
-    pop     {r0, r1, r2, pc}
+    @ Configure C13 as input
+    ldr     r0, =GPIOC
+    ldr     r1, [r0, #IO_MODE]
+    bic     r1, r1, 0b11 << (13*2)
+    str     r1, [r0, #IO_MODE]
+
+    pop     {r0, r1, r2, r3, pc}
 
 
 
@@ -104,11 +123,15 @@ systick_handler:
     cmp     r1, r2
 
     bne     _systick_handler_continue
-        ldr     r0, =GPIOA
-        ldr     r1, [r0, #IO_OUTPUT]
-        eor     r1, r1, 0b1 << 5
-        str     r1, [r0, #IO_OUTPUT]
-        mov     r1, #0
+        ldr     r0, =clock_countdown
+        ldr     r2, [r0]
+        adds    r2, r2, #1
+        str     r2, [r0]
+
+        push    {r2}
+        bl      dispchar
+        add     sp, sp, #4
+
     _systick_handler_continue:
 
     ldr     r0, =systick_counter
@@ -117,12 +140,13 @@ systick_handler:
     pop     {r0, r1, r2, pc}
 
 
-
+.thumb_func
 __exc_handler:
     b __exc_handler
 
+.thumb_func
 __dummy_handler:
-    bx lr
+    pop {pc}
 
 
 
@@ -133,3 +157,13 @@ data_vma_start:
     .word data_vma_start
 data_vma_end:
     .word data_vma_end
+
+
+
+.section .data
+.align 4
+
+clock_countdown:
+    .word 0x0
+saturation:
+    .word 0x0
