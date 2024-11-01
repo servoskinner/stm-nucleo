@@ -1,31 +1,11 @@
 #include <stdint.h>
 #include <stddef.h>
 
-//---------------
-// RCC Registers
-//---------------
 
-#define REG_RCC_CR      (volatile uint32_t*)(uintptr_t)0x40021000U // Clock Control Register
-#define REG_RCC_CFGR    (volatile uint32_t*)(uintptr_t)0x40021004U // PLL Configuration Register
-#define REG_RCC_AHBENR  (volatile uint32_t*)(uintptr_t)0x40021014U // AHB1 Peripheral Clock Enable Register
-#define REG_RCC_APB2ENR (volatile uint32_t*)(uintptr_t)0x40021018U // APB1 Peripheral Clock Enable Register
-#define REG_RCC_CFGR2   (volatile uint32_t*)(uintptr_t)0x4002102CU // Clock configuration register 2
-#define REG_RCC_CFGR3   (volatile uint32_t*)(uintptr_t)0x40021030U // Clock configuration register 2
+#include "../F401RE_reg_map.h"
 
-//----------------
-// GPIO Registers
-//----------------
 
-#define GPIOA_MODER   (volatile uint32_t*)(uintptr_t)0x48000000U // GPIO port mode register
-#define GPIOA_OSPEEDR (volatile uint32_t*)(uintptr_t)0x48000008U // GPIO port output speed register
-#define GPIOA_AFRH    (volatile uint32_t*)(uintptr_t)0x48000024U // GPIO alternate function high register
-
-#define GPIOC_MODER   (volatile uint32_t*)(uintptr_t)0x48000800U // GPIO port mode register
-#define GPIOC_TYPER   (volatile uint32_t*)(uintptr_t)0x48000804U // GPIO port output type register
-
-//----------------
-// UART Registers
-//----------------
+// UART Registers___________________________________________________
 
 #define USART1_CR1 (volatile uint32_t*)(uintptr_t)0x40013800U // Control register 1
 #define USART1_CR2 (volatile uint32_t*)(uintptr_t)0x40013804U // Control register 2
@@ -33,9 +13,7 @@
 #define USART1_ISR (volatile uint32_t*)(uintptr_t)0x4001381CU // Interrupt and status register
 #define USART1_TDR (volatile uint32_t*)(uintptr_t)0x40013828U // Transmit data register
 
-//-------------------
-// RCC configuration
-//-------------------
+// RCC configuration_______________________________________________
 
 #define CPU_FREQENCY 48000000U // CPU frequency: 48 MHz
 #define ONE_MILLISECOND CPU_FREQENCY/1000U
@@ -43,33 +21,30 @@
 void board_clocking_init()
 {
     // (1) Clock HSE and wait for oscillations to setup.
-    *REG_RCC_CR = 0x00010000U;
-    while ((*REG_RCC_CR & 0x00020000U) != 0x00020000U);
+    *RCC_CTRL |= ONE(16);
+    while ((*RCC_CTRL & ONE(17)) != ONE(17));
 
     // (2) Configure PLL:
-    // PREDIV output: HSE/2 = 4 MHz
-    *REG_RCC_CFGR2 |= 1U;
+    // PREDIV output: HSE*192/32 = 48 MHz
+    *RCC_PLLCFG |= ONE(5);
+    *RCC_PLLCFG &= ZERO(4);
 
     // (3) Select PREDIV output as PLL input (4 MHz):
-    *REG_RCC_CFGR |= 0x00010000U;
+    *RCC_PLLCFG |= ONE(22);
 
-    // (4) Set PLLMUL to 12:
+    // (4) Set PLLMUL to 12 (omitted)
     // SYSCLK frequency = 48 MHz
-    *REG_RCC_CFGR |= (12U-2U) << 18U;
 
     // (5) Enable PLL:
-    *REG_RCC_CR |= 0x01000000U;
-    while ((*REG_RCC_CR & 0x02000000U) != 0x02000000U);
-
+    *RCC_CTRL |= ONE(24);
+    while ((*RCC_CTRL & ONE(25)) != ONE(25));
     // (6) Configure AHB frequency to 48 MHz:
-    *REG_RCC_CFGR |= 0b000U << 4U;
-
+    *RCC_CFG |= 0b0000U << 4;
     // (7) Select PLL as SYSCLK source:
-    *REG_RCC_CFGR |= 0b10U;
-    while ((*REG_RCC_CFGR & 0xCU) != 0x8U);
-
+    *RCC_CFG |= 0b10U;
+    while ((*RCC_CFG & 0b1100U) != 0b1000U);
     // (8) Set APB frequency to 48 MHz
-    *REG_RCC_CFGR |= 0b000U << 8U;
+    *RCC_CFG |= 0b000U << 10U;
 }
 
 //--------------------
@@ -79,20 +54,20 @@ void board_clocking_init()
 void board_gpio_init()
 {
     // (1) Configure PC8 as LED
-    *REG_RCC_AHBENR |= (1U << 19U);
+    *RCC_AHBENR |= (1U << 19U);
 
     // Configure PC8 mode:
-    *GPIOC_MODER |= (0b01U << (2U * 8U));
+    *GPIOC(IO_MODE) |= (0b01U << (2U * 8U));
 
     // Configure PC8 type:
-    *GPIOC_TYPER |= (0U << 8U);
+    *GPIOC(IO_TYPE) |= (0U << 8U);
 
     // (2) Configure pins PA9 and PA10 for UART
-    *REG_RCC_AHBENR |= (1U << 17U);
+    *RCC_AHBENR |= (1U << 17U);
 
     // Set alternate functions:
-    *GPIOA_AFRH |= (1U << 4U * ( 9U - 8U));
-    *GPIOA_AFRH |= (1U << 4U * (10U - 8U));
+    *GPIOA_AFRH |= 
+    *GPIOA_AFRH |= 
 
     // Configure pin operating speed:
     *GPIOA_OSPEEDR |= (0b11U << (2U *  9U));
@@ -140,7 +115,7 @@ void uart_init(size_t baudrate, size_t frequency)
     while ((*USART1_ISR & (1U << 21U)) == 0U);
 }
 
-void uart_send_byte(char sym)
+void send_byte(char sym)
 {
     // Wait for TXE:
     while ((*USART1_ISR & (1U <<  7U)) == 0U);
@@ -149,11 +124,17 @@ void uart_send_byte(char sym)
     *USART1_TDR = sym;
 }
 
+char recv_byte()
+{
+	return '\0';
+}
+
+
 void print_string(const char* buf)
 {
     for (size_t i = 0; buf[i] != '\0'; i++)
     {
-        uart_send_byte(buf[i]);
+        send_byte(buf[i]);
     }
 }
 

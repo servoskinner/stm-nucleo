@@ -66,16 +66,7 @@ int main()
     bool button_state = false;
 
     while (1)
-    {
-        // *GPIOA(IO_OUTPUT) |= ONE(5);
-
-        // delay(600);
-
-        // *GPIOA(IO_OUTPUT) &= ZERO(5);
-
-        // delay(100);
-
-        
+    {   
         bool button_reading = *GPIOC(IO_INPUT) & ONE(13);
 
         if(button_reading)
@@ -83,6 +74,7 @@ int main()
             if(saturation == DEBOUNCING_THRESHOLD)
             {
                 button_state = true;
+             	saturation = 0;
             }
             else
             {

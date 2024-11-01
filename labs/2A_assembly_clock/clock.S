@@ -61,12 +61,13 @@ reset:
 setup_gpio:
     push    {r0, r1, r2, r3, lr} 
 
+    @ activate clock 
     ldr     r0, =RCC_AHB1ENA
-    ldr     r1, [r0]
-    orr     r1, r1, #0b00101
+    ldr     r1, [r0] 
+    orr     r1, r1, #0b00110
     str     r1, [r0]
 
-    @ Configure A0-A8 as output 
+    @ Configure B0-B8 as output 
     ldr     r0, =GPIOB
     ldr     r1, [r0, #IO_MODE]
     mov     r2, #0b11
@@ -101,9 +102,13 @@ main:
     bl setup_clock
     bl setup_gpio
 
-    push    #100
+    push    #10
     bl      setup_timer
     add     sp, sp, #4 @ discard arg
+
+    push    #0
+    bl      dispchar
+    add     sp, sp, #4
 
     _main_infinite_loop:
         b   _main_infinite_loop
@@ -123,14 +128,16 @@ systick_handler:
     cmp     r1, r2
 
     bne     _systick_handler_continue
-        ldr     r0, =clock_countdown
+        ldr     r0, =clock_counter
         ldr     r2, [r0]
-        adds    r2, r2, #1
+        subs    r2, r2, #1
         str     r2, [r0]
 
         push    {r2}
         bl      dispchar
         add     sp, sp, #4
+
+        mov     r1, #0
 
     _systick_handler_continue:
 
@@ -138,6 +145,10 @@ systick_handler:
     str     r1, [r0]
 
     pop     {r0, r1, r2, pc}
+
+
+
+.global toggle_button
 
 
 .thumb_func
@@ -163,7 +174,7 @@ data_vma_end:
 .section .data
 .align 4
 
-clock_countdown:
-    .word 0x0
+clock_counter:
+    .word 0x00000000
 saturation:
-    .word 0x0
+    .word 0x00000000

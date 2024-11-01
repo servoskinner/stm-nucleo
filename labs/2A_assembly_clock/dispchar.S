@@ -28,7 +28,7 @@ dispchar:   @ displays a character on 7-segment display
     ldr     r2, [r0, #IO_OUTPUT]
     bic     r2, r2, 0b11111111
     orr     r2, r2, r1
-    str     r2, [r0, #IO_INPUT]
+    str     r2, [r0, #IO_OUTPUT]
 
     pop     {r0, r1, r2, pc}
 
@@ -43,9 +43,9 @@ dispchar:   @ displays a character on 7-segment display
         .byte 0b00000111 @ 7
         .byte 0b01111111 @ 8
         .byte 0b01101111 @ 9
-        .byte 0b00000000 @ A
-        .byte 0b00000000 @ B
-        .byte 0b00000000 @ C
-        .byte 0b00000000 @ D
-        .byte 0b00000000 @ E
-        .byte 0b00000000 @ F
+        .byte 0b01110111 @ A
+        .byte 0b01111100 @ B
+        .byte 0b00111001 @ C
+        .byte 0b01011110 @ D
+        .byte 0b01111001 @ E
+        .byte 0b01110001 @ F
