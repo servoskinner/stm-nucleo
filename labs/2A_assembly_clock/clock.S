@@ -48,8 +48,8 @@ reset:
         ldr     r4, [r0]
         str     r4, [r1]
 
-        adds    r0, r0, #4
-        adds    r1, r1, #4
+        add     r0, r0, #4
+        add     r1, r1, #4
         b       _loop_copy_data
     _end_copy_data:
 
@@ -102,13 +102,26 @@ main:
     bl setup_clock
     bl setup_gpio
 
-    push    #10
-    bl      setup_timer
-    add     sp, sp, #4 @ discard arg
+    @ Set debouncing threshold to 10
+    ldr 	r0, =button_threshold
+    mov 	r1, #10
+    str     r1, [r0]
 
-    push    #0
+    @ Set timer to 10 ms
+	mov		r0, #10
+    push    {r0}
+    bl      setup_timer
+    add     sp, sp, #4
+
+    @ Zero button saturation and display
+    eor 	r1, r1, r1
+    ldr     r0, =button_saturation
+    str     r1, [r0]
+    push 	{r1}
     bl      dispchar
     add     sp, sp, #4
+
+
 
     _main_infinite_loop:
         b   _main_infinite_loop
@@ -122,22 +135,47 @@ systick_handler:
 
     ldr     r0, =systick_counter
     ldr     r1, [r0]
-    adds    r1, r1, #1
+    add     r1, r1, #1
     ldr     r0, =systick_counter_capacity
     ldr     r2, [r0]
     cmp     r1, r2
 
     bne     _systick_handler_continue
-        ldr     r0, =clock_counter
-        ldr     r2, [r0]
-        subs    r2, r2, #1
-        str     r2, [r0]
+        ldr 	r0, =GPIOC
+        ldr 	r1, [r0, #IO_INPUT]
 
-        push    {r2}
-        bl      dispchar
-        add     sp, sp, #4
+        ldr 	r0, =button_saturation
+        tst		r1, 0b1 << 13
+		beq		_systick_button_down
+		@ button up
+			eor		r1, r1, r1
+			str 	r1, [r0]
+			ldr 	r0, =button_state
+			strb	r1, [r0]
+		
+		b 		_systick_button_test_end
+		_systick_button_down: 
+		@ button down
+			ldr		r1, [r0]
+			ldr		r0, =button_threshold
+			ldr		r2, [r0]
+			cmp 	r1, r2
+			beq 	_systick_saturated
+				add		r1, r1, #1
+				ldr		r0, =button_saturation
+				str 	r1, [r0]
 
-        mov     r1, #0
+			b 		_systick_button_test_end
+			_systick_saturated:
+				ldr		r0, =button_state
+				ldrb	r1, [r0]
+				tst		r1, 0b1
+
+				bne _systick_button_test_end
+				bl button_down
+				
+        _systick_button_test_end:
+       	eor     r1, r1, r1
 
     _systick_handler_continue:
 
@@ -147,8 +185,25 @@ systick_handler:
     pop     {r0, r1, r2, pc}
 
 
+.thumb_func
+button_down:
+	push	{r0, r1, lr}
 
-.global toggle_button
+	ldr		r0, =button_state
+	mov 	r1, 0b00000001
+	strb	r1, [r0]
+	
+	ldr		r0, =clock_counter
+	ldr 	r1, [r0]
+	add 	r1, r1, #1
+	str 	r1, [r0]
+
+	push	{r1}
+	bl		dispchar
+    add     sp, sp, #4
+
+	pop		{r0, r1, pc}
+	
 
 
 .thumb_func
@@ -176,5 +231,9 @@ data_vma_end:
 
 clock_counter:
     .word 0x00000000
-saturation:
+button_saturation:
     .word 0x00000000
+button_threshold:
+	.word 0x00000005
+button_state:
+	.byte 0x00

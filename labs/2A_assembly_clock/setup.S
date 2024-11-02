@@ -84,11 +84,12 @@ setup_timer:
     ldr     r0, =systick_counter
     mov     r1, #0
     str     r1, [r0]
-    @ Set reload value to 1s
+    @ Set reload value to 1ms
     ldr     r0, =SYSTICK_CALIB
     ldr     r1, [r0]
-    mov     r2, #1
-    mul     r1, r2
+    bic     r1, r1, 0b11 << 30 @ exclude SKEW and NOREF
+    mov     r2, #10
+    udiv    r1, r1, r2
     ldr     r0, =SYSTICK_RELV
     str     r1, [r0]
     @ Reset initial value

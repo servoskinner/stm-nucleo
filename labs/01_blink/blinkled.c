@@ -40,7 +40,7 @@ void board_gpio_init()
     *RCC_AHB1ENA |= ONE(2);
     // (2) Configure GPIOA_5, GPIOC_13 mode:
     *GPIOA(IO_MODE)|= 0b01U << (2*5U);
-    *GPIOC(IO_MODE)|= 0b01U << (2*13U);
+    *GPIOC(IO_MODE)|= 0b00U << (2*13U);
 }
 
 void delay(uint32_t millis)
