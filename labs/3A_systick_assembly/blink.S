@@ -87,6 +87,7 @@ main:
     add     sp, sp, #4 @ discard arg
 
     _main_infinite_loop:
+        nop
         b   _main_infinite_loop
         
 

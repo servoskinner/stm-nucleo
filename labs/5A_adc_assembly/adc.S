@@ -22,13 +22,14 @@
 .word __exc_handler      	@ UsageFault Handler
 .fill 4, 4, 0x00            @ Reserved
 
-
-
 .word __exc_handler         @ SVCall
 .word __exc_handler         @ DebugMon Handler
 .word 0x00                  @ Reserved
 .word __exc_handler         @ PendSV
 .word systick_handler       @ SysTick
+.fill 18, 4, 0x00           @ Skip
+
+.word adc_handler           @ ADC1 Handler
 
 
 
@@ -61,7 +62,7 @@ reset:
 setup_gpio:
     push    {r0, r1, r2, r3, lr} 
 
-    @ activate clock 
+    @ activate GPIOB, GPIOC
     ldr     r0, =RCC_AHB1ENA
     ldr     r1, [r0] 
     orr     r1, r1, #0b00110
@@ -96,32 +97,66 @@ setup_gpio:
 
 
 
+.thumb_func
+setup_adc:
+    push {r0, r1, r2, lr}
+
+    @ activate GPIOA
+    ldr     r0, =RCC_AHB1ENA
+    ldr     r1, [r0] 
+    orr     r1, r1, #0b00001
+    str     r1, [r0]
+
+    @ Configure A0 as analog
+    ldr     r0, =GPIOA
+    ldr     r1, [r0, #IO_MODE]
+    orr     r1, r1, 0b11 << (0*2)
+    str     r1, [r0, #IO_MODE]
+
+    @ activate ADC1
+    ldr     r0, =RCC_APB2ENA
+    ldr     r1, [r0]
+    orr     r1, r1, 0b1 << 8
+    str     r1, [r0]
+
+    @ configure ADC control 1
+    ldr     r0, =ADC_CR1
+    ldr     r1, [r0]
+    orr     r1, r1, 0b10 << 24 @ 8-bit mode
+    orr     r1, r1, 0b1 << 5   @ enable end of conversion interrupt
+    str     r1, [r0]
+
+    @ configure ADC control 2
+    ldr     r0, =ADC_CR2
+    ldr     r1, [r0]
+    orr     r1, r1, 0b1 << 0 @ enable ADC
+    str     r1, [r0]
+
+    @ enable interrupt handling
+    ldr     r0, =NVIC_ISER
+    ldr     r1, [r0]
+    orr     r1, r1, 0b1 << 18
+    str     r1, [r0]
+
+    @ ADC_SQR3 is already configured
+    @ sample rate is already configured
+
+    pop {r0, r1, r2, pc}
+
+
+
 .global main
 .thumb_func
 main:
     bl setup_clock
     bl setup_gpio
-
-    @ Set debouncing threshold to 10
-    ldr 	r0, =button_threshold
-    mov 	r1, #10
-    str     r1, [r0]
+    bl setup_adc
 
     @ Set timer to 10 ms
-	mov		r0, #10
+	mov		r0, #1000
     push    {r0}
     bl      setup_timer
     add     sp, sp, #4
-
-    @ Zero button saturation and display
-    eor 	r1, r1, r1
-    ldr     r0, =button_saturation
-    str     r1, [r0]
-    push 	{r1}
-    bl      dispchar
-    add     sp, sp, #4
-
-
 
     _main_infinite_loop:
         nop
@@ -141,70 +176,20 @@ systick_handler:
     ldr     r2, [r0]
     cmp     r1, r2
 
-    bne     _systick_handler_continue
-        ldr 	r0, =GPIOC
-        ldr 	r1, [r0, #IO_INPUT]
+    bne     _systick_handler_continue   
+        ldr     r0, =ADC_CR2
+        ldr     r1, [r0]
+        orr     r1, r1, 0b1 << 30 @ start conversion
+        str     r1, [r0]
 
-        ldr 	r0, =button_saturation
-        tst		r1, 0b1 << 13
-		beq		_systick_button_down
-		@ button up
-			eor		r1, r1, r1
-			str 	r1, [r0]
-			ldr 	r0, =button_state
-			strb	r1, [r0]
-		
-		b 		_systick_button_test_end
-		_systick_button_down: 
-		@ button down
-			ldr		r1, [r0]
-			ldr		r0, =button_threshold
-			ldr		r2, [r0]
-			cmp 	r1, r2
-			beq 	_systick_saturated
-				add		r1, r1, #1
-				ldr		r0, =button_saturation
-				str 	r1, [r0]
-
-			b 		_systick_button_test_end
-			_systick_saturated:
-				ldr		r0, =button_state
-				ldrb	r1, [r0]
-				tst		r1, 0b1
-
-				bne _systick_button_test_end
-				bl button_down
-				
-        _systick_button_test_end:
-       	eor     r1, r1, r1
+        eor     r1, r1, r1
 
     _systick_handler_continue:
 
     ldr     r0, =systick_counter
     str     r1, [r0]
 
-    pop     {r0, r1, r2, pc}
-
-
-.thumb_func
-button_down:
-	push	{r0, r1, lr}
-
-	ldr		r0, =button_state
-	mov 	r1, 0b00000001
-	strb	r1, [r0]
-	
-	ldr		r0, =clock_counter
-	ldr 	r1, [r0]
-	add 	r1, r1, #1
-	str 	r1, [r0]
-
-	push	{r1}
-	bl		dispchar
-    add     sp, sp, #4
-
-	pop		{r0, r1, pc}
-	
+    pop     {r0, r1, r2, pc}	
 
 
 .thumb_func
@@ -229,12 +214,3 @@ data_vma_end:
 
 .section .data
 .align 4
-
-clock_counter:
-    .word 0x00000000
-button_saturation:
-    .word 0x00000000
-button_threshold:
-	.word 0x00000005
-button_state:
-	.byte 0x00
