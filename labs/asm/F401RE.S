@@ -1,3 +1,5 @@
+.ifndef F401RE
+#define F401RE
 @ Register macros
 .equ CPU_FREQ,      48000000
 
@@ -26,6 +28,14 @@
 .equ SYSTICK_CURV,  0xE000E018 @ Systick current value
 .equ SYSTICK_CALIB, 0xE000E01C @ Systick calibration value
 
+.equ ADC_SR,        0x40012000 @ Analog-digital converter status
+.equ ADC_CR1,       0x40012004 @ Analog-digital converter control 1
+.equ ADC_CR2,       0x40012008 @ Analog-digital converter control 2
+.equ ADC_SMPR1,     0x4001200C @ Analog-digital converter sample rate 1
+.equ ADC_SMPR2,     0x40012010 @ Analog-digital converter sample rate 2
+.equ ADC_SQR3,      0x40012032 @ Analog-digital converter conversion sequence 3
+.equ ADC_DR,        0x4001204C @ Analog-digital converter output
+
 .equ GPIOA,         0x40020000 
 .equ GPIOB,         0x40020400
 .equ GPIOC,         0x40020800
@@ -39,3 +49,5 @@
 .equ IO_INPUT,      0x10
 .equ IO_OUTPUT,     0x14
 .equ IO_RESET,      0x18
+
+.endif

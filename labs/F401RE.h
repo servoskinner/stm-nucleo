@@ -1,7 +1,9 @@
+#pragma once
 // Functional Macros
 
 #define ONE(x)       (uint32_t)(0b1U << (x))
 #define ZERO(x)      (uint32_t)(~ONE((x)))
+#define MASK(x)      (uint32_t)(0b1U << ((x)+1) - 0b1U)
 
 // RCC Registers ________________________________________
 

@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <stdbool.h>
-#include "../F401RE_reg_map.h"
+#include "../F401RE.h"
 //___________________
 //
 // 7-segment display

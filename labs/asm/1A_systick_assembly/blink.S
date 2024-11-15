@@ -1,10 +1,12 @@
 .syntax unified
 .thumb
 
-.include "regmap.S"
+.include "../F401RE.S"
+.include "../macros.S"
 
 .extern setup_clock
 .extern setup_timer
+.extern setup_gpio
 .extern systick_counter_capacity
 .extern systick_counter
 
@@ -44,35 +46,15 @@ reset:
     loop_copy_data:
         cmp     r1, r2
         beq     end_copy_data
-        ldr     r4, [r0]
-        str     r4, [r1]
+        ldr     r3, [r0]
+        str     r3, [r1]
 
-        adds    r0, r0, #4
-        adds    r1, r1, #4
+        adds    r0, r0, 4
+        adds    r1, r1, 4
         b       loop_copy_data
     end_copy_data:
 
     bl main
-
-
-
-.thumb_func
-setup_gpio:
-    push    {r0, r1, r2, lr} 
-
-    ldr     r0, =RCC_AHB1ENA
-    ldr     r1, [r0]
-    orr     r1, r1, #0b00101
-    str     r1, [r0]
-
-    @ Configure A5 as output
-    ldr     r0, =GPIOA
-    ldr     r1, [r0, #IO_MODE]
-    bic     r1, r1, 0b11 << (5*2)
-    orr     r1, r1, 0b01 << (5*2)
-    str     r1, [r0, #IO_MODE]
-
-    pop     {r0, r1, r2, pc}
 
 
 
@@ -82,9 +64,8 @@ main:
     bl setup_clock
     bl setup_gpio
 
-    push    #100
+    mov     r0, 100
     bl      setup_timer
-    add     sp, sp, #4 @ discard arg
 
     _main_infinite_loop:
         nop
@@ -95,28 +76,25 @@ main:
 .global systick_handler
 .thumb_func
 systick_handler:
-    push    {r0, r1, r2, lr} 
+    push    {lr} 
 
     ldr     r0, =systick_counter
     ldr     r1, [r0]
-    adds    r1, r1, #1
+    add     r1, r1, 1
     ldr     r0, =systick_counter_capacity
     ldr     r2, [r0]
     cmp     r1, r2
 
     bne     _systick_handler_continue
-        ldr     r0, =GPIOA
-        ldr     r1, [r0, #IO_OUTPUT]
-        eor     r1, r1, 0b1 << 5
-        str     r1, [r0, #IO_OUTPUT]
-        mov     r1, #0
+
+        FLIPSG  GPIOA, IO_OUTPUT, 0b1, 5
+        mov     r1, 0
     _systick_handler_continue:
 
     ldr     r0, =systick_counter
     str     r1, [r0]
 
-    pop     {r0, r1, r2, pc}
-
+    pop     {pc}    
 
 
 __exc_handler:

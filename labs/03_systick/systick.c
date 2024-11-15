@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <stdbool.h>
-#include "../F401RE_reg_map.h"
+#include "../F401RE.h"
 
 // RCC configuration _________________________
 
@@ -60,7 +60,6 @@ void systick_init(uint32_t period_us)
     *SYSTICK_RVR = (reload_value - 1U) & 0x00FFFFFFU;
     // (2) Clear current value:
     *SYSTICK_CVR = 0U;
-
     // (3) Set clock source
     *SYSTICK_CTRL = 0b111U;
 }

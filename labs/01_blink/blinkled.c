@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <stdbool.h>
-#include "../F401RE_reg_map.h"
+#include "../F401RE.h"
 
 #define CPU_FREQUENCY 1920000U // TRUE and HONEST CPU frequency: 1.92 MHz
 #define ONE_MILLISECOND (CPU_FREQUENCY/1000U)

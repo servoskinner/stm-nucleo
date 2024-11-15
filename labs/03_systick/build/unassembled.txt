@@ -1,11 +1,11 @@
 
-build/systick.elf:     file format elf32-littlearm
+systick.elf:     file format elf32-littlearm
 
 
 Disassembly of section .text:
 
 08000000 <__reset_handler-0x40>:
- 8000000:	20002000 	andcs	r2, r0, r0
+ 8000000:	20018000 	andcs	r8, r1, r0
  8000004:	08000041 	stmdaeq	r0, {r0, r6}
  8000008:	0800006e 	stmdaeq	r0, {r1, r2, r3, r5, r6}
  800000c:	0800006e 	stmdaeq	r0, {r1, r2, r3, r5, r6}

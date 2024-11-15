@@ -1,7 +1,8 @@
 .syntax unified
 .thumb
 
-.include "regmap.S"
+.include "../F401RE.S"
+.include "../macros.S"
 
 
 
@@ -10,8 +11,9 @@
 .global pwm_cycle
 .thumb_func
 pwm_cycle:
-    push    {r0, r1, r2, lr}
+    push    {lr}
 
+    mov     r3, r0
     ldr     r0, =pwm_resolution
     ldr     r2, [r0]
     ldr     r0, =pwm_state
@@ -24,7 +26,7 @@ pwm_cycle:
     _pwm_cycle_noreset:
     
     str     r1, [r0] @ -> pwm_state
-    ldr     r2, [sp, #16]
+    mov     r2, r3
 
     cmp     r1, r2
     ldr     r0, =GPIOB
@@ -40,7 +42,7 @@ pwm_cycle:
     
     str     r1, [r0, #IO_OUTPUT]
 
-    pop     {r0, r1, r2, pc}
+    pop     {pc}
 
 
 
