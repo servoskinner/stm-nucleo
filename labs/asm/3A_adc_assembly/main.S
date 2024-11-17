@@ -37,14 +37,21 @@
 
 
 .section .text
-.align 4
+
+.thumb_func
+__exc_handler:
+    b __exc_handler
+
+.thumb_func
+__dummy_handler:
+    bx lr
 
 .global reset
 .thumb_func
 reset:
-    ldr     r0, =data_lma_start
-    ldr     r1, =data_vma_start
-    ldr     r2, =data_vma_end
+    ldr     r0, =__data_lma_start
+    ldr     r1, =__data_vma_start
+    ldr     r2, =__data_vma_end
 
     _loop_copy_data:
         cmp     r1, r2
@@ -65,12 +72,12 @@ reset:
 .thumb_func
 main:
     @ Set everything up
-    bl setup_clock
-    bl setup_gpio
-    bl setup_adc
-
+    bl      setup_clock
+    bl      setup_gpio
+    @ Set up ADC
+    bl      setup_adc
     @ Set timer to 10 ms
-	mov		r0, 1
+	mov		r0, 10
     bl      setup_timer
 
     _main_infinite_loop:
@@ -103,26 +110,3 @@ systick_handler:
 
     pop     {pc}	
 
-
-.thumb_func
-__exc_handler:
-    b __exc_handler
-
-.thumb_func
-__dummy_handler:
-    bx lr
-
-
-
-.align 4
-data_lma_start:
-    .word data_lma_start
-data_vma_start:
-    .word data_vma_start
-data_vma_end:
-    .word data_vma_end
-
-
-
-.section .data
-.align 4

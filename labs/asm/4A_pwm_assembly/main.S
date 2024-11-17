@@ -42,15 +42,15 @@
 .global reset
 .thumb_func
 reset:
-    ldr     r0, =data_lma_start
-    ldr     r1, =data_vma_start
-    ldr     r2, =data_vma_end
+    ldr     r0, =__data_lma_start
+    ldr     r1, =__data_vma_start
+    ldr     r2, =__data_vma_end
 
     _loop_copy_data:
         cmp     r1, r2
         beq     _end_copy_data
-        ldr     r4, [r0]
-        str     r4, [r1]
+        ldr     r3, [r0]
+        str     r3, [r1]
 
         add     r0, r0, #4
         add     r1, r1, #4
@@ -64,22 +64,13 @@ reset:
 .global main
 .thumb_func
 main:
-    bl setup_clock
-    bl setup_gpio
-
-    @ Set debouncing threshold to 10
-    SETC   button_threshold, 10
+    bl      setup_clock
+    bl      setup_gpio
     @ Set timer to 10 ms
-	mov		r0, #1
+	mov		r0, 1
     bl      setup_timer
-
-    @ Set PWM resolution
-    SETC    pwm_resolution, 15
-
-    @ Zero button saturation, pwm threshold, state counter and displayed char
-    SETC    button_saturation, 0
-    SETC    clock_counter, 0
-    SETC    pwm_state, 0
+    @ Set up ADC
+    bl      setup_adc
 
     mov     r0, 0
     bl      dispchar
@@ -166,9 +157,6 @@ systick_cycle:
     _systick_cycle_button_test_end:
     pop     {pc}
 
-
-
-.thumb_func
 button_down:
 	push	{lr}
 
@@ -196,15 +184,6 @@ __exc_handler:
 .thumb_func
 __dummy_handler:
     pop {pc}
-
-
-
-data_lma_start:
-    .word data_lma_start
-data_vma_start:
-    .word data_vma_start
-data_vma_end:
-    .word data_vma_end
 
 
 

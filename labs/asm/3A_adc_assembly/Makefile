@@ -31,7 +31,7 @@ endif
 #-------
 
 SOURCES = \
-	adc.S \
+	main.S \
 	adc_handler.S \
 	dispchar.S \
 	setup.S \

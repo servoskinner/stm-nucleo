@@ -2,8 +2,11 @@
 #include <stdbool.h>
 #include "../F401RE.h"
 
-#define CPU_FREQUENCY 1920000U // TRUE and HONEST CPU frequency: 1.92 MHz
+#define CPU_FREQUENCY 4000000U // TRUE and HONEST CPU frequency: 1.92 MHz
 #define ONE_MILLISECOND (CPU_FREQUENCY/1000U)
+
+int peepee = 256;
+int pooopoo = 16;
 
 void board_clocking_init()
 {
@@ -12,27 +15,29 @@ void board_clocking_init()
     while ((*RCC_CTRL & ONE(17)) != ONE(17));
 
     // (2) Configure PLL:
-    // PREDIV output: HSE*192/32 = 48 MHz
-    *RCC_PLLCFG |= ONE(5);
-    *RCC_PLLCFG &= ZERO(4);
+    // PREDIV output: HSE*192/32 = 6 MHz
+    uint32_t pllcfg;
+
+    pllcfg = *RCC_PLLCFG;
+    pllcfg = (pllcfg & ~MASK(6)) | 0b100000; // PLLM = 32
+    pllcfg = (pllcfg & ~(MASK(6) << 6)) | (256 << 6); // PLLN = 256
+    *RCC_PLLCFG = pllcfg;
 
     // (3) Select PREDIV output as PLL input (4 MHz):
     *RCC_PLLCFG |= ONE(22);
 
-    // (4) Set PLLMUL to 12 (omitted)
-    // SYSCLK frequency = 48 MHz
-
     // (5) Enable PLL:
     *RCC_CTRL |= ONE(24);
-    while ((*RCC_CTRL & ONE(25)) != ONE(25));
+    while ((*RCC_CTRL & ONE(25)) != ONE(25)) {};
     // (6) Configure AHB frequency to 48 MHz:
     *RCC_CFG |= 0b0000U << 4;
     // (7) Select PLL as SYSCLK source:
     *RCC_CFG |= 0b10U;
-    while ((*RCC_CFG & 0b1100U) != 0b1000U);
+    while ((*RCC_CFG & 0b1100U) != 0b1000U) {};
     // (8) Set APB frequency to 48 MHz
     *RCC_CFG |= 0b000U << 10U;
 }
+
 void board_gpio_init()
 {
     // (1) Enable GPIOA, GPIOC clocking:

@@ -4,7 +4,7 @@
 
 // RCC configuration _________________________
 
-#define CPU_FREQUENCY 1920000U // TRUE and HONEST CPU frequency: 1.92 MHz
+#define CPU_FREQUENCY 4000000U // TRUE and HONEST CPU frequency: 1.92 MHz
 #define ONE_MILLISECOND (CPU_FREQUENCY/1000U)
 
 // Clocking setup.
@@ -12,18 +12,19 @@ void board_clocking_init()
 {
     // (1) Clock HSE and wait for oscillations to setup.
     *RCC_CTRL |= ONE(16);
-    while ((*RCC_CTRL & ONE(17)) != ONE(17)) {};
+    while ((*RCC_CTRL & ONE(17)) != ONE(17));
 
     // (2) Configure PLL:
-    // PREDIV output: HSE*192/32 = 48 MHz
-    *RCC_PLLCFG |= ONE(5);
-    *RCC_PLLCFG &= ZERO(4);
+    // PREDIV output: HSE*192/32 = 6 MHz
+    uint32_t pllcfg;
+
+    pllcfg = *RCC_PLLCFG;
+    pllcfg = (pllcfg & ~MASK(6)) | 0b100000; // PLLM = 32
+    pllcfg = (pllcfg & ~(MASK(6) << 6)) | (256 << 6); // PLLN = 256
+    *RCC_PLLCFG = pllcfg;
 
     // (3) Select PREDIV output as PLL input (4 MHz):
     *RCC_PLLCFG |= ONE(22);
-
-    // (4) Set PLLMUL to 12 (omitted)
-    // SYSCLK frequency = 48 MHz
 
     // (5) Enable PLL:
     *RCC_CTRL |= ONE(24);
@@ -41,9 +42,7 @@ void board_clocking_init()
 void board_gpio_init()
 {
     // (1) Enable GPIOA, GPIOB and GPIOC clocking:
-    *RCC_AHB1ENA |= ONE(0);
-    *RCC_AHB1ENA |= ONE(1);
-    *RCC_AHB1ENA |= ONE(2);
+    *RCC_AHB1ENA |= 0b111;
     // (2) Configure GPIOA_(0-7) mode:
     *GPIOA(IO_MODE) = 0b0101010101010101U;
 }

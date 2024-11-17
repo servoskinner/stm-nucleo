@@ -7,7 +7,6 @@
 
 
 .section .text
-.align 4
 
 .global setup_gpio
 .thumb_func
@@ -96,20 +95,46 @@ setup_clock:
 
 
 
+.global setup_adc
+.thumb_func
+setup_adc:
+    push {r4, r5, lr}
+
+    @ Activate GPIOA
+    ONES    RCC_AHB1ENA, 0b00001, 0
+    @ Configure A0 as analog
+    SETBG   GPIOA, IO_MODE, 0b11, 2, 0*2
+    @ Activate ADC1 clocking
+    ONES    RCC_APB2ENA, 0b1, 8
+    @ Set 8-bit mode
+    SETB    ADC_CR1, 0b10, 2, 24
+    @ Enable end of conversion interrupt
+    ONES    ADC_CR1, 0b1, 5
+
+    @ Enable ADC
+    ONES    ADC_CR1, 0b1, 0
+    @ enable ADC interrupt handling
+    ONES    NVIC_ISER, 0b1, 18
+
+    @ ADC_SQR3 is already configured
+    @ sample rate is already configured
+
+    pop {r4, r5, pc}
+
+
+
 .global setup_timer
 .thumb_func
 setup_timer:
     push    {lr} 
     @ Set data values
-    ldr     r0, =systick_counter_capacity
-    str     r0, [r0]
+    ldr     r1, =systick_counter_capacity
+    str     r0, [r1]
     SETC    systick_counter, 0
 
-    @ Set reload value to 10ms
-    ldr     r0, =SYSTICK_CALIB
-    ldr     r1, [r0]
-    bic     r1, r1, 0b1 << 31
+    @ 4 MHz -> 1ms
     ldr     r0, =SYSTICK_RELV
+    ldr     r1, =4000
     str     r1, [r0]
 
     @ Reset initial value
@@ -122,12 +147,11 @@ setup_timer:
 
 
 .section .data
-.align 4
 
 .global systick_counter_capacity
 systick_counter_capacity:
-    .word 0x00
+    .word 0
     
 .global systick_counter
 systick_counter:
-    .word 0x00
+    .word 0

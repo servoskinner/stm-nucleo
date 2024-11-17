@@ -34,28 +34,34 @@
 
 
 .section .text
-.align 4
+
+.thumb_func
+__exc_handler:
+    b __exc_handler
+
+.thumb_func
+__dummy_handler:
+    bx lr
 
 .global reset
 .thumb_func
 reset:
-    ldr     r0, =data_lma_start
-    ldr     r1, =data_vma_start
-    ldr     r2, =data_vma_end
+    ldr     r0, =__data_lma_start
+    ldr     r1, =__data_vma_start
+    ldr     r2, =__data_vma_end
 
-    loop_copy_data:
+    _loop_copy_data:
         cmp     r1, r2
-        beq     end_copy_data
+        beq     _end_copy_data
         ldr     r3, [r0]
         str     r3, [r1]
 
-        adds    r0, r0, 4
-        adds    r1, r1, 4
-        b       loop_copy_data
-    end_copy_data:
+        add     r0, r0, #4
+        add     r1, r1, #4
+        b       _loop_copy_data
+    _end_copy_data:
 
     bl main
-
 
 
 .global main
@@ -64,7 +70,7 @@ main:
     bl setup_clock
     bl setup_gpio
 
-    mov     r0, 100
+    mov     r0, 1000
     bl      setup_timer
 
     _main_infinite_loop:
@@ -95,20 +101,3 @@ systick_handler:
     str     r1, [r0]
 
     pop     {pc}    
-
-
-__exc_handler:
-    b __exc_handler
-
-__dummy_handler:
-    bx lr
-
-
-
-.align 4
-data_lma_start:
-    .word data_lma_start
-data_vma_start:
-    .word data_vma_start
-data_vma_end:
-    .word data_vma_end

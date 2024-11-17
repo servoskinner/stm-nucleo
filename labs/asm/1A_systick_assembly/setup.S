@@ -7,7 +7,6 @@
 
 
 .section .text
-.align 4
 
 .global setup_gpio
 .thumb_func
@@ -18,13 +17,14 @@ setup_gpio:
     ONES    RCC_AHB1ENA, 0b00101, 0
     @ Configure A5 as output
     SETBG   GPIOA, IO_MODE, 0b01, 2, (5*2)
+    @ C13 is already configured as output
 
     pop     {pc}
 
 
 
 .global setup_clock
-.thumb_func  
+.thumb_func
 setup_clock:
     push {lr} 
 
@@ -32,25 +32,34 @@ setup_clock:
     ONES     RCC_CTRL, 0b1, 16
 
     @ Wait for oscillations to set up.
-    ldr     r4, =RCC_CTRL
+    ldr     r0, =RCC_CTRL
     setup_clock_hse_wait_loop:
-        ldr     r5, [r4]
-        tst     r5, 0b1 << 17
+        ldr     r1, [r0]
+        tst     r1, 0b1 << 17
 
         beq setup_clock_hse_wait_loop
 
     @ Configure PLL prediv to 48 MHz
-    SETB    RCC_PLLCFG, 0b10, 2, 4
-    @ Select PREDIV as PLL input (4 MHz)
+    @ bytes should not be reset
+    SETB    RCC_PLLCFG, 0b100000, 6, 0 @ PLLM = 32
+    
+    ldr     r0, =RCC_PLLCFG
+    ldr     r1, [r0]
+    ldr     r2, =((1 << 10 - 1) << 6)
+    bic     r1, r1, r2
+    ldr     r2, =(256 << 6)
+    orr     r1, r1, r2
+    str     r1, [r0]
+    @ Select HSE as PLL input (8 MHz)
     ONES    RCC_PLLCFG, 0b1, 22
     @ Enable PLL
     ONES    RCC_CTRL, 0b1, 24
 
     @ Wait for PLL to spin up
-    ldr     r4, =RCC_CTRL   
+    ldr     r0, =RCC_CTRL   
     setup_clock_pll_wait_loop:
-        ldr     r5, [r4]
-        tst     r5, 0b1 << 25
+        ldr     r1, [r0]
+        tst     r1, 0b1 << 25
 
         beq setup_clock_pll_wait_loop
 
@@ -60,11 +69,11 @@ setup_clock:
     SETB    RCC_CFG, 0b10, 2, 0
 
     @ Wait for changes to apply
-    ldr     r4, =RCC_CFG
+    ldr     r0, =RCC_CFG
     setup_clock_ahb_wait_loop:
-        ldr     r5, [r4]
-        and     r5, r5, 0b11 << 2
-        tst     r5, 0b10 << 2
+        ldr     r1, [r0]
+        and     r1, r1, 0b11 << 2
+        tst     r1, 0b10 << 2
         beq     setup_clock_ahb_wait_loop
 
     @ set APB frequency to 48 MHz
@@ -79,16 +88,13 @@ setup_clock:
 setup_timer:
     push    {lr} 
     @ Set data values
-    ldr     r4, =systick_counter_capacity
-    str     r0, [r4]
-    SETC    systick_counter, 0
+    ldr     r1, =systick_counter_capacity
+    str     r0, [r1]
 
-    @ Set reload value to 10ms
-    ldr     r4, =SYSTICK_CALIB
-    ldr     r5, [r4]
-    bic     r5, r5, 0b1 << 31
-    ldr     r4, =SYSTICK_RELV
-    str     r5, [r4]
+    @ 4 MHz -> 1ms
+    ldr     r0, =SYSTICK_RELV
+    ldr     r1, =4000
+    str     r1, [r0]
 
     @ Reset initial value
     SETC    SYSTICK_CURV, 0
@@ -100,7 +106,6 @@ setup_timer:
 
 
 .section .data
-.align 4
 
 .global systick_counter_capacity
 systick_counter_capacity:

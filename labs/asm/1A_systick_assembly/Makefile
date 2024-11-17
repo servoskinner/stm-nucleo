@@ -31,7 +31,7 @@ endif
 #-------
 
 SOURCES = \
-	blink.S \
+	main.S \
 	setup.S \
 
 OBJECTS_HALFWAY_DONE = $(SOURCES:%.c=build/%.o)

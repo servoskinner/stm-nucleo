@@ -1,7 +1,7 @@
 .ifndef F401RE
 #define F401RE
 @ Register macros
-.equ CPU_FREQ,      48000000
+.equ CPU_FREQ,      32000000
 
 .equ RCC_CTRL,      0x40023800 @ Clock Control
 .equ RCC_PLLCFG,    0x40023804 @ PLL Configuration
@@ -49,5 +49,8 @@
 .equ IO_INPUT,      0x10
 .equ IO_OUTPUT,     0x14
 .equ IO_RESET,      0x18
+.equ IO_AFRL,       0x20
+.equ IO_AFRH,       0x24
+
 
 .endif

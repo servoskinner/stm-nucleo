@@ -30,7 +30,6 @@ adc_handler:   @ Handles ADC conversion result
 
 
 .section .data
-.align 4
 
 .global adc_value
 adc_value:

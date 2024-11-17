@@ -2,7 +2,7 @@
 #include <stddef.h>
 
 
-#include "../F401RE_reg_map.h"
+#include "../F401RE.h"
 
 
 // UART Registers___________________________________________________
@@ -15,7 +15,7 @@
 
 // RCC configuration_______________________________________________
 
-#define CPU_FREQENCY 48000000U // CPU frequency: 48 MHz
+#define CPU_FREQUENCY 48000000U // CPU frequency: 48 MHz
 #define ONE_MILLISECOND CPU_FREQENCY/1000U
 
 void board_clocking_init()
@@ -53,29 +53,25 @@ void board_clocking_init()
 
 void board_gpio_init()
 {
-    // (1) Configure PC8 as LED
-    *RCC_AHBENR |= (1U << 19U);
-
+    // Enable GPIOC
+    *RCC_AHB1ENA |= ONE(2);
     // Configure PC8 mode:
     *GPIOC(IO_MODE) |= (0b01U << (2U * 8U));
-
     // Configure PC8 type:
     *GPIOC(IO_TYPE) |= (0U << 8U);
 
-    // (2) Configure pins PA9 and PA10 for UART
-    *RCC_AHBENR |= (1U << 17U);
+    // Enable GPIOA
+    *RCC_AHB1ENA |= ONE(0);
 
     // Set alternate functions:
-    *GPIOA_AFRH |= 
-    *GPIOA_AFRH |= 
-
+    *GPIOA(IO_AFRH) |= 
+    *GPIOA(IO_AFRH) |= 
     // Configure pin operating speed:
-    *GPIOA_OSPEEDR |= (0b11U << (2U *  9U));
-    *GPIOA_OSPEEDR |= (0b11U << (2U * 10U));
-
+    *GPIOA(IO_SPEED) |= (0b11U << (2U *  9U));
+    *GPIOA(IO_SPEED) |= (0b11U << (2U * 10U));
     // Configure mode register:
-    *GPIOA_MODER |= (0b10U << (2U *  9U));
-    *GPIOA_MODER |= (0b10U << (2U * 10U));
+    *GPIOA(IO_MODE) |= (0b10U << (2U *  9U));
+    *GPIOA(IO_MODE) |= (0b10U << (2U * 10U));
 }
 
 //--------------------
@@ -85,8 +81,8 @@ void board_gpio_init()
 void uart_init(size_t baudrate, size_t frequency)
 {
     // (1) Configure USART1 clocking:
-    *REG_RCC_APB2ENR |= (1U << 14U);
-    *REG_RCC_CFGR3   |= 0b00U;
+    *RCC_APB2ENA |= (1U << 14U);
+    *RCC_CFG     |= 0b00U; //CFGR3
 
     // (2) Set USART1 parameters:
     uint32_t reg_usart_cr1 = 0U;

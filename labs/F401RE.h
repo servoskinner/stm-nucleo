@@ -40,6 +40,8 @@
 #define IO_INPUT     (uint32_t)0x10U
 #define IO_OUTPUT    (uint32_t)0x14U
 #define IO_RESET     (uint32_t)0x18U
+#define IO_AFRL      (uint32_t)0x20U
+#define IO_AFRH      (uint32_t)0x24U
 
 // Timer Registers_______________________________________
 

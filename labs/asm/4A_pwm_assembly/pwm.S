@@ -18,7 +18,7 @@ pwm_cycle:
     ldr     r2, [r0]
     ldr     r0, =pwm_state
     ldr     r1, [r0]
-    add     r1, r1, #1
+    add     r1, r1, 1
     cmp     r1, r2
 
     blt     _pwm_cycle_noreset
@@ -50,7 +50,8 @@ pwm_cycle:
 
 .global pwm_resolution
 pwm_resolution:
-    .word   16
+    .word   15
+    
 .global pwm_state
 pwm_state:
     .word   0

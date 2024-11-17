@@ -127,15 +127,13 @@ setup_clock:
 setup_timer:
     push    {lr} 
     @ Set data values
-    ldr     r0, =systick_counter_capacity
-    str     r0, [r0]
+    ldr     r1, =systick_counter_capacity
+    str     r0, [r1]
     SETC    systick_counter, 0
 
-    @ Set reload value to 10ms
-    ldr     r0, =SYSTICK_CALIB
-    ldr     r1, [r0]
-    bic     r1, r1, 0b1 << 31
+    @ 4 MHz -> 1ms
     ldr     r0, =SYSTICK_RELV
+    ldr     r1, =4000
     str     r1, [r0]
 
     @ Reset initial value

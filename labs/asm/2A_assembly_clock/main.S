@@ -4,6 +4,7 @@
 .include "../F401RE.S"
 .include "../macros.S"
 
+
 .extern setup_clock
 .extern setup_timer
 .extern systick_counter_capacity
@@ -34,14 +35,21 @@
 
 
 .section .text
-.align 4
+
+.thumb_func
+__exc_handler:
+    b __exc_handler
+
+.thumb_func
+__dummy_handler:
+    bx lr
 
 .global reset
 .thumb_func
 reset:
-    ldr     r0, =data_lma_start
-    ldr     r1, =data_vma_start
-    ldr     r2, =data_vma_end
+    ldr     r0, =__data_lma_start
+    ldr     r1, =__data_vma_start
+    ldr     r2, =__data_vma_end
 
     _loop_copy_data:
         cmp     r1, r2
@@ -56,23 +64,15 @@ reset:
 
     bl main
 
-
-
 .global main
 .thumb_func
 main:
     bl setup_clock
     bl setup_gpio
-
-    @ Set debouncing threshold to 10
-    SETC    button_threshold, 10
-    @ Set timer to 10 ms
-	mov		r0, 10
+    @ Set timer to 5 ms
+	mov		r0, 5
     bl      setup_timer
-
-    @ Zero button saturation and display
-    SETC    button_saturation, 0
-
+    @ Display zero
     mov     r0, 0
     bl      dispchar
 
@@ -109,7 +109,7 @@ systick_handler:
 		
 		b 		_systick_button_test_end
 		_systick_button_down: 
-		@ button down
+		@ button down - check saturation
 			ldr		r1, [r0]
 			ldr		r0, =button_threshold
 			ldr		r2, [r0]
@@ -118,7 +118,6 @@ systick_handler:
 				add		r1, r1, #1
 				ldr		r0, =button_saturation
 				str 	r1, [r0]
-
 			b 		_systick_button_test_end
 			_systick_saturated:
 				ldr		r0, =button_state
@@ -156,37 +155,16 @@ button_down:
 	bl		dispchar
 
 	pop		{pc}
-	
-
-
-.thumb_func
-__exc_handler:
-    b __exc_handler
-
-.thumb_func
-__dummy_handler:
-    bx lr
-
-
-
-.align 4
-data_lma_start:
-    .word data_lma_start
-data_vma_start:
-    .word data_vma_start
-data_vma_end:
-    .word data_vma_end
 
 
 
 .section .data
-.align 4
 
 clock_counter:
-    .word 0x00000000
+    .word 0
 button_saturation:
-    .word 0x00000000
+    .word 0
 button_threshold:
-	.word 0x00000005
+	.word 5
 button_state:
 	.byte 0x00

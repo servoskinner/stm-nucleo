@@ -31,7 +31,7 @@ endif
 #-------
 
 SOURCES = \
-	clock.S \
+	main.S \
 	dispchar.S \
 	setup.S \
 
@@ -40,8 +40,8 @@ OBJECTS              = $(OBJECTS_HALFWAY_DONE:%.S=build/%.o)
 
 ENTRY_FLASH = build/entry.o
 
-EXECUTABLE_FLASH = build/systick.elf
-BINARY_FLASH     = build/systick.bin
+EXECUTABLE_FLASH = build/clock.elf
+BINARY_FLASH     = build/clock.bin
 
 QEMU_FLAGS = \
 	-machine NUCLEO-F411RE \
