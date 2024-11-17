@@ -27,15 +27,15 @@ SECTIONS
     .data :
     {
         . = ALIGN(4);
-        data_vma_start = .;
+        __data_vma_start = .;
 
         *(.data*)
 
         . = ALIGN(4);
-        data_vma_end = .;
+        __data_vma_end = .;
     } >SRAM AT >FLASH
 
-    data_lma_start = LOADADDR(.data);
+    __data_lma_start = LOADADDR(.data);
     __stack_start = SRAM_VADDR + SRAM_SIZE;
 
     /DISCARD/ :

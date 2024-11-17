@@ -46,28 +46,28 @@ setup_gpio:
 .global setup_adc
 .thumb_func
 setup_adc:
-    push {r4, r5, lr}
+    push {lr}
 
-    @ Activate GPIOA
+    @ @ Activate GPIOA
     ONES    RCC_AHB1ENA, 0b00001, 0
-    @ Configure A0 as analog
+    @ @ Configure A0 as analog
     SETBG   GPIOA, IO_MODE, 0b11, 2, 0*2
-    @ Activate ADC1 clocking
+    @ @ Activate ADC1 clocking
     ONES    RCC_APB2ENA, 0b1, 8
-    @ Set 8-bit mode
+
+     @ @ Set 8-bit mode
     SETB    ADC_CR1, 0b10, 2, 24
-    @ Enable end of conversion interrupt
+    @ @ Enable end of conversion interrupt
     ONES    ADC_CR1, 0b1, 5
-
-    @ Enable ADC
-    ONES    ADC_CR1, 0b1, 0
-    @ enable ADC interrupt handling
+    @ @ Enable ADC
+    ONES    ADC_CR2, 0b1, 0
+    @ @ enable ADC interrupt handling
     ONES    NVIC_ISER, 0b1, 18
-
+    
     @ ADC_SQR3 is already configured
     @ sample rate is already configured
 
-    pop {r4, r5, pc}
+    pop {pc}
 
 
 
