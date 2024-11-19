@@ -36,8 +36,8 @@ static const uint32_t DIGITS[10] =
 
 void display_number(int digit)
 {
-    uint32_t unchanged_pins = *GPIOB(IO_INPUT) & ~PINS_USED;
-    *GPIOB(IO_OUTPUT) = unchanged_pins | DIGITS[(digit) % 10]; 
+    uint32_t unchanged_pins = *REG_GPIOB(GPIO_INPUT) & ~PINS_USED;
+    *REG_GPIOB(GPIO_OUTPUT) = unchanged_pins | DIGITS[(digit) % 10]; 
 }
 
 //___________________
@@ -50,32 +50,32 @@ void display_number(int digit)
 void board_clocking_init()
 {
     // (1) Clock HSE and wait for oscillations to setup.
-    *RCC_CTRL |= ONE(16);
-    while ((*RCC_CTRL & ONE(17)) != ONE(17));
+    *REG_RCC_CR |= ONE(16);
+    while ((*REG_RCC_CR & ONE(17)) != ONE(17));
 
     // (2) Configure PLL:
     // PREDIV output: HSE*256/32/2 = 32 MHz
     uint32_t pllcfg;
 
-    pllcfg = *RCC_PLLCFG;
+    pllcfg = *REG_RCC_PLLCFGR;
     pllcfg = (pllcfg & ~MASK(6)) | 0b100000; // PLLM = 32
     pllcfg = (pllcfg & ~(MASK(9) << 6)) | (256U << 6); // PLLN = 256
 
-    *RCC_PLLCFG = pllcfg;
+    *REG_RCC_PLLCFGR = pllcfg;
 
     // (3) Select PREDIV output as PLL input (4 MHz):
-    *RCC_PLLCFG |= ONE(22);
+    *REG_RCC_PLLCFGR |= ONE(22);
 
     // (5) Enable PLL:
-    *RCC_CTRL |= ONE(24);
-    while ((*RCC_CTRL & ONE(25)) != ONE(25)) {};
+    *REG_RCC_CR |= ONE(24);
+    while ((*REG_RCC_CR & ONE(25)) != ONE(25)) {};
     // (6) Configure AHB frequency to 32 MHz:
-    *RCC_CFG |= 0b0000U << 4;
+    *REG_RCC_CFGR |= 0b0000U << 4;
     // (7) Select PLL as SYSCLK source:
-    *RCC_CFG |= 0b10U;
-    while ((*RCC_CFG & 0b1100U) != 0b1000U) {};
+    *REG_RCC_CFGR |= 0b10U;
+    while ((*REG_RCC_CFGR & 0b1100U) != 0b1000U) {};
     // (8) Set APB frequency to 32 MHz
-    *RCC_CFG |= 0b000U << 10U;
+    *REG_RCC_CFGR |= 0b000U << 10U;
 }
 
 void delay(uint32_t millis)
@@ -93,10 +93,10 @@ void delay(uint32_t millis)
 void board_gpio_init()
 {
     // (1) Enable GPIOB and GPIOC clocking:
-    *RCC_AHB1ENA |= ONE(1);
-    *RCC_AHB1ENA |= ONE(2);
+    *REG_RCC_AHB1ENR |= ONE(1);
+    *REG_RCC_AHB1ENR |= ONE(2);
     // (2) Configure GPIOB_(0-7) mode:
-    *GPIOB(IO_MODE) = 0b0101010101010101U;
+    *REG_GPIOB(GPIO_MODE) = 0b0101010101010101U;
 }
 
 //______
@@ -118,14 +118,14 @@ int main()
 
     while (1)
     {
-        bool button_reading = *GPIOC(IO_INPUT) & ONE(13);
+        bool button_reading = *REG_GPIOC(GPIO_INPUT) & ONE(13);
 
         if(button_reading)
         {
             if(saturation == DEBOUNCING_THRESHOLD)
             {
                 button_state = true;
-                *GPIOB(IO_OUTPUT) &= ZERO(7);
+                *REG_GPIOB(GPIO_OUTPUT) &= ZERO(7);
             }
             else
             {
@@ -141,7 +141,7 @@ int main()
                 }
             saturation = 0;
             button_state = false;
-            *GPIOB(IO_OUTPUT) |= ONE(7);
+            *REG_GPIOB(GPIO_OUTPUT) |= ONE(7);
         }
 
         delay(5);

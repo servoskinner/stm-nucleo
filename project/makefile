@@ -10,6 +10,7 @@ BUILD_DIR = build
 
 CFLAGS = \
 	-mcpu=cortex-m4 \
+	-mthumb \
 	-I$(INCL_DIR)
 
 LDFLAGS = \
@@ -91,10 +92,5 @@ hardware: $(EXECUTABLE_FLASH)
 
 gdb: $(BINARY_FLASH)
 	arm-none-eabi-gdb $(GDB_FLAGS)
-
-poop: 
-	@echo $(SOURCES)
-	@echo $(OBJECTS_HALFWAY_DONE)
-	@echo $(OBJECTS)
 
 .PHONY: all clean flash qemu hardware gdb

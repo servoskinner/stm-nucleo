@@ -3,8 +3,8 @@
 void setup_clock(uint32_t frequency_hz)
 {
     // Enable HSE and wait for oscillations to setup.
-    *RCC_CTRL |= ONE(16);
-    while ((*RCC_CTRL & ONE(17)) != ONE(17));
+    *REG_RCC_CR |= ONE(16);
+    while ((*REG_RCC_CR & ONE(17)) != ONE(17));
 
     // Configure PLL:
     uint32_t pllcfg;
@@ -17,23 +17,23 @@ void setup_clock(uint32_t frequency_hz)
         plln_value = 432;
     }
 
-    pllcfg = *RCC_PLLCFG;
+    pllcfg = *REG_RCC_PLLCFGR;
     pllcfg = (pllcfg & ~MASK(6)) | 0b100000; // PLLM = 32
     pllcfg = (pllcfg & ~(MASK(9) << 6)) | (plln_value << 6); // PLLN
 
-    *RCC_PLLCFG = pllcfg;
+    *REG_RCC_PLLCFGR = pllcfg;
 
     // Select HSE output as PLL input (8 MHz):
-    *RCC_PLLCFG |= ONE(22);
+    *REG_RCC_PLLCFGR |= ONE(22);
 
     // Enable PLL:
-    *RCC_CTRL |= ONE(24);
-    while ((*RCC_CTRL & ONE(25)) != ONE(25)) {};
+    *REG_RCC_CR |= ONE(24);
+    while ((*REG_RCC_CR & ONE(25)) != ONE(25)) {};
     // Configure AHB frequency to PLL
-    *RCC_CFG |= 0b0000U << 4;
+    *REG_RCC_CFGR |= 0b0000U << 4;
     // Select PLL as SYSCLK source:
-    *RCC_CFG |= 0b10U;
-    while ((*RCC_CFG & 0b1100U) != 0b1000U) {};
+    *REG_RCC_CFGR |= 0b10U;
+    while ((*REG_RCC_CFGR & 0b1100U) != 0b1000U) {};
     // Set APB frequency to PLL
-    *RCC_CFG |= 0b000U << 10U;
+    *REG_RCC_CFGR |= 0b000U << 10U;
 }

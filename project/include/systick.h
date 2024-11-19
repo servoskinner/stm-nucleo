@@ -12,6 +12,6 @@ struct systick_binding {
 // Systick handler
 void systick_handler();
 // Add systick listener
-char systick_add_listener(struct systick_binding binding);
+uint8_t systick_add_listener(struct systick_binding binding);
 // Remove systick listener
-void systick_rm_listener(char id);
+void systick_rm_listener(uint8_t id);
