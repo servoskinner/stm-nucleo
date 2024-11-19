@@ -1,6 +1,6 @@
-#include <setup.h>
+#include <clock.h>
 
-void setup_clock(uint32_t frequency_hz)
+void _clock_init(uint32_t frequency_hz)
 {
     // Enable HSE and wait for oscillations to setup.
     *REG_RCC_CR |= ONE(16);

@@ -1,11 +1,13 @@
 #pragma once
 
+#include <stdint.h>
+
 #include <constants.h>
 #include <F401RE.h>
 
 // Board clock setup
-void setup_clock(uint32_t freq_hz);
+void _clock_init(uint32_t freq_hz);
 // Systick setup
-void setup_systick(uint32_t period_us);
+void _systick_init(uint32_t period_us);
 
 

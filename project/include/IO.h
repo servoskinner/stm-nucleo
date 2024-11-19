@@ -1,5 +1,8 @@
 #pragma once
 
+#include <stdint.h>
+#include <barray.h>
+
 #include <constants.h>
 #include <F401RE.h>
 
@@ -13,6 +16,11 @@
 #define MODE_OUTPUT 1
 #define MODE_ALT    2
 #define MODE_ANALOG 3
+
+struct gpio_pin {
+    uint8_t gpio;
+    uint8_t pin;
+};
 
 // Clock up GPIO group
 void io_enable(uint8_t gpio);

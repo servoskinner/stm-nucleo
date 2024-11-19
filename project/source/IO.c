@@ -1,36 +1,36 @@
 #include <F401RE.h>
-#include <io.h>
+#include <IO.h>
 
-volatile uint8_t gpio_disabled[5]; // Filled with 0xFF
+uint8_t _gpio_disabled[5]; // Filled with 0xFF
 
 void io_enable(uint8_t gpio) {
     if (gpio > 4) {
         return;
     }
     *REG_RCC_AHB1ENR |= ONE(gpio);
-    gpio_disabled[gpio] = 0U;
+    _gpio_disabled[gpio] = 0U;
 }
 
 void io_disable(uint8_t gpio) {
     if (gpio > 4) {
         return;
     }
-    *REG_RCC_AHB1RST |= ONE(gpio);
-    gpio_disabled[gpio] = 1U;
+    *REG_RCC_AHB1ENR &= ZERO(gpio);
+    _gpio_disabled[gpio] = 1U;
 }
 
 uint8_t io_clock_status(uint8_t gpio) {
     if (gpio > 4) {
         return 0U;
     }
-    return !gpio_disabled[gpio];
+    return !_gpio_disabled[gpio];
 }
 
 void io_mode(uint8_t gpio, uint8_t pin, uint8_t mode) {
     if (gpio > 4U || pin > 16U || mode > 3U) {
         return;
     }
-    if (gpio_disabled[gpio]) { // Clock up GPIO if not enabled
+    if (_gpio_disabled[gpio]) { // Clock up GPIO if not enabled
         io_enable(gpio);
     }
     uint32_t mask = 0b11 << 2 * pin;
@@ -45,7 +45,7 @@ void io_type(uint8_t gpio, uint8_t pin, uint8_t type) {
     if (gpio > 4U || pin > 16U || type > 1U) {
         return;
     }
-    if (gpio_disabled[gpio]) { // Clock up GPIO if not enabled
+    if (_gpio_disabled[gpio]) { // Clock up GPIO if not enabled
         io_enable(gpio);
     }
     uint32_t mask = 0b1U << pin;

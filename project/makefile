@@ -31,7 +31,7 @@ endif
 # Files
 #-------
 
-SOURCES = $(wildcard $(SRC_DIR)/*)
+SOURCES = $(wildcard $(SRC_DIR)/*) logic.c
 
 OBJECTS_HALFWAY_DONE = $(SOURCES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
 OBJECTS              = $(OBJECTS_HALFWAY_DONE:$(SRC_DIR)/%.S=$(BUILD_DIR)/%.o)

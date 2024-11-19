@@ -1,5 +1,8 @@
 #pragma once
 
+#include <stdint.h>
+
+#include <barray.h>
 #include <F401RE.h>
 #include <constants.h>
 
@@ -9,6 +12,8 @@ struct systick_binding {
     void (*callback)(void);
 };
 
+// Systick setup
+void _systick_init(uint32_t period_us);
 // Systick handler
 void systick_handler();
 // Add systick listener
