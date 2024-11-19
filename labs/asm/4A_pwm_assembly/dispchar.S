@@ -7,7 +7,6 @@
 
 
 .section .text
-.align 4
 
 .global dispchar
 .thumb_func

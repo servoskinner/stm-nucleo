@@ -61,7 +61,7 @@ __reset_handler:
 	b __loop_copy_bss_section
 
 __loop_copy_bss_section_end:
-    blx main // Execute actual software:
+    bl main // Execute actual software:
 
 __halt:
 	b __halt

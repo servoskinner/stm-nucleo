@@ -4,20 +4,25 @@
 
 CC = arm-none-eabi-gcc
 
-SRC_DIR = source
-INCL_DIR = include
+SRC_DIR = 	source \
+			source/hardware \
+			source/periph \
+			source/structs 
+INCL_DIR = 	include \
+			include/hardware \
+			include/periph \
+			include/structs
 BUILD_DIR = build
 
 CFLAGS = \
 	-mcpu=cortex-m4 \
 	-mthumb \
-	-I$(INCL_DIR)
+	$(foreach dir, $(INCL_DIR), -I$(dir))
 
 LDFLAGS = \
 	-nostdlib \
 	-mcpu=cortex-m4 \
 	-Wl,-T,entry.lds \
-	-I$(INCL_DIR)
 
 ifeq ($(DEBUG),1)
 	CFLAGS += -g
@@ -31,10 +36,11 @@ endif
 # Files
 #-------
 
-SOURCES = $(wildcard $(SRC_DIR)/*) logic.c
+SOURCES = $(shell find $(SRC_DIR) -maxdepth 1 -name '*.c') \
+		  $(shell find $(SRC_DIR) -maxdepth 1 -name '*.S') \
+		  logic.c
 
-OBJECTS_HALFWAY_DONE = $(SOURCES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
-OBJECTS              = $(OBJECTS_HALFWAY_DONE:$(SRC_DIR)/%.S=$(BUILD_DIR)/%.o)
+OBJECTS = $(patsubst %.S, $(BUILD_DIR)/%.o, $(patsubst %.c, $(BUILD_DIR)/%.o, $(SOURCES)))
 
 EXECUTABLE_FLASH = $(BUILD_DIR)/program.elf
 BINARY_FLASH     = $(BUILD_DIR)/program.bin
@@ -43,20 +49,24 @@ BINARY_FLASH     = $(BUILD_DIR)/program.bin
 # Build scripts
 #---------------
 
-all: $(EXECUTABLE_FLASH) $(BINARY_FLASH) $(SOURCES)
+all: $(EXECUTABLE_FLASH) $(BINARY_FLASH)
 
 $(EXECUTABLE_FLASH): $(OBJECTS)
+	@echo
+	@echo $(SOURCES)
+	@echo
 	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
 
 $(BINARY_FLASH): $(EXECUTABLE_FLASH)
+	@mkdir -p $(dir $@)
 	arm-none-eabi-objcopy -O binary $< $@
 
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
-	@mkdir -p $(BUILD_DIR)
+$(BUILD_DIR)/%.o: %.c
+	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -o $@ -c $<
 
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.S
-	@mkdir -p $(BUILD_DIR)
+$(BUILD_DIR)/%.o: %.s
+	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 clean:
@@ -84,7 +94,7 @@ GDB_FLAGS = \
 flash: $(BINARY_FLASH)
 	st-flash write $(BINARY_FLASH) 0x08000000
 
-qemu :  $(EXECUTABLE_FLASH)
+qemu: $(EXECUTABLE_FLASH)
 	qemu-system-gnuarmeclipse $(QEMU_FLAGS)
 
 hardware: $(EXECUTABLE_FLASH)

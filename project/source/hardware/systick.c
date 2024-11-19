@@ -18,7 +18,7 @@ void _systick_init(uint32_t period_us)
 
 void _systick_handler() {
     uint8_t entries_processed = 0;
-    for (int i = 0; i < 255; i++) {
+    for (uint8_t i = 0; i < 255; i++) {
         if (entries_processed == 255 - _systick_nvacant) {
             break; // All entries processed, don't scan further
         }
@@ -27,7 +27,7 @@ void _systick_handler() {
             // Trigger callback and reset countown if it
             // reached zero
             if (binding.countdown == 0) {
-                binding.callback();
+                binding.callback(i + 1);
                 _systick_list[i].countdown = binding.period;
             }
             _systick_list[i].countdown--;
@@ -36,14 +36,14 @@ void _systick_handler() {
     }
 }
 
-uint8_t systick_add_listener(struct systick_binding binding) {
+uint8_t systick_add(struct systick_binding binding) {
     // Check that there are subscription slots available
     if (_systick_nvacant == 0) {
         return 0;
     }
     // Find first vacant binding id
     uint8_t vacant_binding_id;
-    for (int i = 0; i < 255; i++) {
+    for (uint8_t i = 0; i < 255; i++) {
         if (barray_get(_systick_vacant, i)) {
             vacant_binding_id = i;
             break;
@@ -57,9 +57,11 @@ uint8_t systick_add_listener(struct systick_binding binding) {
     return vacant_binding_id + 1;
 }
 
-void systick_rm_listener(uint8_t id) {
-    if (!barray_get(_systick_vacant, id - 1)) {
-        _systick_nvacant++;
+void systick_rm(uint8_t id) {
+    if (id != 0) {
+        if (!barray_get(_systick_vacant, id - 1)) {
+            _systick_nvacant++;
+        }
+        barray_set(_systick_vacant, id - 1, 1U);
     }
-    barray_set(_systick_vacant, id - 1, 1U);
 }

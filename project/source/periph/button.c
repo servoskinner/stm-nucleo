@@ -10,11 +10,11 @@ void _button_init() {
     check_buttons.period = 10U;
     check_buttons.callback = _button_process;
 
-    systick_add_listener(check_buttons);
+    systick_add(check_buttons);
 }
 
-void _button_process() {
-    for (int i = 0; i < 31; i++) {
+void _button_process(uint8_t binding_id) {
+    for (uint8_t i = 0; i < 31; i++) {
         if(!barray_get(_button_vacant, i)) {
             struct button_entry entry = _buttons[i];
             uint8_t pin_state = io_read(entry.gpio, entry.pin);
@@ -28,7 +28,7 @@ void _button_process() {
                 uint8_t new_state = !entry.state;
                 _buttons[i].state = new_state;
                 _buttons[i].debouncing_saturation = 0;
-                _buttons[i].callback(new_state);
+                _buttons[i].callback(i+1, new_state);
             }
         }
     }
@@ -40,7 +40,7 @@ uint8_t button_add(uint8_t gpio, uint8_t pin, void (*callback)(uint8_t)) {
     }
     // Find first vacant binding id
     uint8_t vacant_binding_id;
-    for (int i = 0; i < 255; i++) {
+    for (uint8_t i = 0; i < 255; i++) {
         if (barray_get(_button_vacant, i)) {
             vacant_binding_id = i;
             break;
@@ -65,10 +65,12 @@ uint8_t button_add(uint8_t gpio, uint8_t pin, void (*callback)(uint8_t)) {
 }
 
 void button_rm(uint8_t id) {
-    if (!barray_get(_button_vacant, id)) {
-        _button_nvacant++;
+    if (id != 0) {
+        if (!barray_get(_button_vacant, id - 1)) {
+            _button_nvacant++;
+        }
+        barray_set(_button_vacant, id - 1, 1U);
     }
-    barray_set(_button_vacant, id, 0U);
 }
 
 uint8_t button_read(uint8_t id){
