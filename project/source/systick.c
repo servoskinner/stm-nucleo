@@ -1,8 +1,8 @@
 #include <systick.h>
 
-struct systick_binding _systick_list[255];
-uint8_t _systick_nvacant = 255;
-BARRAY(_systick_vacant, 255); // Filled with 0xFF
+volatile struct systick_binding _systick_list[255];
+volatile uint8_t _systick_nvacant = 255;
+volatile BARRAY(_systick_vacant, 255); // Filled with 0xFF
 
 void _systick_init(uint32_t period_us)
 {
@@ -16,7 +16,7 @@ void _systick_init(uint32_t period_us)
     *REG_SYSTICK_CTRL = 0b111U;
 }
 
-void systick_handler() {
+void _systick_handler() {
     uint8_t entries_processed = 0;
     for (int i = 0; i < 255; i++) {
         if (entries_processed == 255 - _systick_nvacant) {
@@ -53,6 +53,7 @@ uint8_t systick_add_listener(struct systick_binding binding) {
     _systick_list[vacant_binding_id] = binding;
     barray_set(_systick_vacant, vacant_binding_id, 0U);
     _systick_nvacant--;
+    
     return vacant_binding_id + 1;
 }
 

@@ -1,20 +1,19 @@
 #include <IO.h>
+#include <button.h>
 #include <systick.h>
 
-void blinker()
+void blinker(uint8_t state)
 {
-    io_flip(GPIOA, 5);
+    if(!state) {
+        io_flip(GPIOA, 5);
+    }
 }
 
 void init() 
 {
     io_mode(GPIOA, 5, MODE_OUTPUT);
 
-    struct systick_binding binding;
-    binding.period = 10000U;
-    binding.callback = blinker;
-
-    systick_add_listener(binding);
+    button_add(GPIOC, 13, blinker);
 }
 
 void loop()

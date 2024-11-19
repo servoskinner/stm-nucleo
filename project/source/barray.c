@@ -1,6 +1,6 @@
 #include <barray.h>
 
-void barray_set(barray data, uint32_t idx, uint8_t val) {
+void barray_set(volatile uint8_t *data, uint32_t idx, uint8_t val) {
     uint32_t bit = idx / 8;
     uint32_t offset = idx % 8;
 
@@ -12,7 +12,7 @@ void barray_set(barray data, uint32_t idx, uint8_t val) {
     }
 }
 
-uint8_t barray_get(barray data, uint32_t idx) {
+uint8_t barray_get(volatile uint8_t *data, uint32_t idx) {
     uint32_t bit = idx / 8;
     uint32_t offset = idx % 8;
 
@@ -20,7 +20,7 @@ uint8_t barray_get(barray data, uint32_t idx) {
     return (data[bit] & mask) >> offset;
 }
 
-void barray_flip(barray data, uint32_t idx) {
+void barray_flip(volatile uint8_t *data, uint32_t idx) {
     uint32_t bit = idx / 8;
     uint32_t offset = idx % 8;
 

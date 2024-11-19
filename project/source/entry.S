@@ -14,10 +14,10 @@
 
 
 .word __exc_handler         // SVCall
-.word __exc_handler       // DebugMon Handler
+.word __exc_handler         // DebugMon Handler
 .word 0x00                  // Reserved
 .word __exc_handler         // PendSV
-.word systick_handler       // SysTick
+.word _systick_handler      // SysTick
 
 
 
