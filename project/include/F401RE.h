@@ -1,4 +1,6 @@
 #pragma once
+
+#include <stdint.h>
 // Functional Macros
 
 #define ONE(x)       (uint32_t)(0b1U << (x))
@@ -57,7 +59,7 @@
 
 // SysTick registers_____________________________________
 
-#define SYSTICK_CTRL   (volatile uint32_t*)(uintptr_t)0xE000E010U // SysTick Control and Status Register
+#define SYSTICK_CTRL  (volatile uint32_t*)(uintptr_t)0xE000E010U // SysTick Control and Status Register
 #define SYSTICK_RVR   (volatile uint32_t*)(uintptr_t)0xE000E014U // SysTick Reload Value Register
 #define SYSTICK_CVR   (volatile uint32_t*)(uintptr_t)0xE000E018U // SysTick Current Value Register
 #define SYSTICK_CALIB (volatile uint32_t*)(uintptr_t)0xE000E01CU // SysTick Calibration Value Register

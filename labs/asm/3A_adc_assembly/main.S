@@ -77,7 +77,7 @@ main:
     @ Set up ADC
     bl      setup_adc
     @ Set timer to 10 ms
-	mov		r0, 250
+	mov		r0, 20
     bl      setup_timer
 
     _main_infinite_loop:

@@ -15,12 +15,13 @@ void board_clocking_init()
     while ((*RCC_CTRL & ONE(17)) != ONE(17));
 
     // (2) Configure PLL:
-    // PREDIV output: HSE*192/32 = 6 MHz
+    // PREDIV output: HSE*256/32/2 = 32 MHz
     uint32_t pllcfg;
 
     pllcfg = *RCC_PLLCFG;
     pllcfg = (pllcfg & ~MASK(6)) | 0b100000; // PLLM = 32
-    pllcfg = (pllcfg & ~(MASK(6) << 6)) | (256 << 6); // PLLN = 256
+    pllcfg = (pllcfg & ~(MASK(9) << 6)) | (256U << 6); // PLLN = 256
+
     *RCC_PLLCFG = pllcfg;
 
     // (3) Select PREDIV output as PLL input (4 MHz):
@@ -29,12 +30,12 @@ void board_clocking_init()
     // (5) Enable PLL:
     *RCC_CTRL |= ONE(24);
     while ((*RCC_CTRL & ONE(25)) != ONE(25)) {};
-    // (6) Configure AHB frequency to 48 MHz:
+    // (6) Configure AHB frequency to 32 MHz:
     *RCC_CFG |= 0b0000U << 4;
     // (7) Select PLL as SYSCLK source:
     *RCC_CFG |= 0b10U;
     while ((*RCC_CFG & 0b1100U) != 0b1000U) {};
-    // (8) Set APB frequency to 48 MHz
+    // (8) Set APB frequency to 32 MHz
     *RCC_CFG |= 0b000U << 10U;
 }
 
